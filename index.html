@@ -3,72 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de EPIs - Logística</title>
+    <title>Controle de Materiais - DPRJ</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; color: #2c3e50; }
-        .scanner-box { border: 2px dashed #3498db; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
+        /* Variáveis de Cores inspiradas na DPRJ */
+        :root {
+            --dprj-verde: #00502F;       /* Verde Escuro Institucional */
+            --dprj-verde-claro: #147345; /* Verde Hover */
+            --dprj-dourado: #D4AF37;     /* Detalhes em Dourado */
+            --dprj-alerta: #C0392B;      /* Vermelho para Saídas/Avisos */
+            --fundo: #f4f7f6;
+            --texto: #333333;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--fundo); 
+            margin: 0; 
+            padding: 10px; /* Menos padding no mobile */
+            color: var(--texto); 
+        }
+
+        .container { 
+            max-width: 1000px; /* Expandido para aproveitar tela de PC */
+            margin: 0 auto; 
+            background: #fff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+        }
+
+        .header {
+            text-align: center;
+            color: var(--dprj-verde);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--dprj-dourado);
+        }
+
+        .header h1 { margin: 0; font-size: 1.8rem; }
+        .header p { margin: 5px 0 0; font-size: 0.9rem; color: #666; font-weight: bold; }
+
+        /* GRID/FLEXBOX: A mágica da responsividade */
+        .layout-grid {
+            display: flex;
+            flex-direction: column; /* Em pé no celular */
+            gap: 20px;
+        }
+
+        /* Se a tela for maior que 768px (Tablets e PCs), fica lado a lado */
+        @media (min-width: 768px) {
+            .layout-grid {
+                flex-direction: row; 
+            }
+            .scanner-section { flex: 1; }
+            .form-section { flex: 1.2; }
+            body { padding: 30px; }
+        }
+
+        .scanner-section { 
+            border: 2px dashed var(--dprj-verde-claro); 
+            padding: 10px; 
+            border-radius: 8px; 
+            background-color: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .form-group { margin-bottom: 15px; }
-        input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { background-color: #3498db; color: white; border: none; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        button:hover { background-color: #2980b9; }
-        .btn-saida { background-color: #e74c3c; }
-        .btn-saida:hover { background-color: #c0392b; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #2c3e50; color: white; }
-        .low-stock { color: #e74c3c; font-weight: bold; }
+        
+        label {
+            font-weight: 600;
+            color: var(--dprj-verde);
+            font-size: 0.9rem;
+        }
+
+        /* Campos de texto maiores para não dar zoom no celular */
+        input, select, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 5px; 
+            border-radius: 6px; 
+            border: 1px solid #ccc; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--dprj-verde);
+            box-shadow: 0 0 5px rgba(0, 80, 47, 0.3);
+        }
+
+        button { 
+            background-color: var(--dprj-verde); 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: background 0.3s; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        
+        button:hover { background-color: var(--dprj-verde-claro); }
+        
+        .btn-saida { background-color: var(--dprj-alerta); }
+        .btn-saida:hover { background-color: #a5281b; }
+
+        h2 { text-align: center; color: var(--dprj-verde); margin-top: 30px; }
+        
+        /* Tabela rolável no celular para não quebrar o layout */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+            min-width: 500px; /* Força a rolagem se a tela for muito pequena */
+        }
+        
+        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+        
+        th { 
+            background-color: var(--dprj-verde); 
+            color: white; 
+            border-bottom: 3px solid var(--dprj-dourado);
+        }
+
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .low-stock { color: var(--dprj-alerta); font-weight: bold; }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📦 Controle de EPIs</h1>
-
-    <div class="scanner-box">
-        <div id="reader" style="width: 100%;"></div>
+    <div class="header">
+        <h1>⚖️ Controle de Materiais e EPI</h1>
+        <p>Defensoria Pública do Estado do Rio de Janeiro</p>
     </div>
 
-    <div class="form-group">
-        <label>Código do Produto (Automático via leitor ou manual):</label>
-        <input type="text" id="codigo" placeholder="Ex: 7891234567890">
-    </div>
-    
-    <div class="form-group">
-        <label>Nome do EPI (Apenas para cadastro inicial):</label>
-        <input type="text" id="nome" placeholder="Ex: Luva de Raspa">
+    <div class="layout-grid">
+        <div class="scanner-section">
+            <div id="reader" style="width: 100%;"></div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label>Código de Barras (Leitor ou Manual):</label>
+                <input type="text" id="codigo" placeholder="Ex: 7891234567890">
+            </div>
+            
+            <div class="form-group">
+                <label>Nome do Material (Apenas 1º cadastro):</label>
+                <input type="text" id="nome" placeholder="Ex: Luva, Papel A4, Grampeador...">
+            </div>
+
+            <div class="form-group">
+                <label>Nome do Colaborador (Para Retirada):</label>
+                <input type="text" id="colaborador" placeholder="Ex: João Silva">
+            </div>
+
+            <div class="form-group">
+                <label>Quantidade:</label>
+                <input type="number" id="quantidade" value="1" min="1">
+            </div>
+
+            <button onclick="registrarEntrada()">📥 Registrar Entrada (Estoque)</button>
+            <button class="btn-saida" onclick="registrarSaida()">📤 Registrar Saída (Entrega)</button>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label>Quantidade:</label>
-        <input type="number" id="quantidade" value="1" min="1">
+    <h2>📊 Posição Atual do Estoque</h2>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Material / EPI</th>
+                    <th>Qtd</th>
+                    <th>Última Retirada Por</th>
+                </tr>
+            </thead>
+            <tbody id="estoque-corpo">
+                </tbody>
+        </table>
     </div>
-
-    <button onclick="registrarEntrada()">📥 Registrar Entrada (Estoque)</button>
-    <button class="btn-saida" onclick="registrarSaida()">📤 Registrar Saída (Colaborador)</button>
-
-    <h2>📊 Posição de Estoque</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Código</th>
-                <th>EPI</th>
-                <th>Qtd</th>
-            </tr>
-        </thead>
-        <tbody id="estoque-corpo">
-            </tbody>
-    </table>
 </div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
-    // Inicializar o banco de dados no LocalStorage
-    let estoque = JSON.parse(localStorage.getItem('epi_estoque')) || {};
+    // Agora usando uma chave específica para a DPRJ no LocalStorage
+    let estoque = JSON.parse(localStorage.getItem('dprj_estoque')) || {};
 
-    // Função para atualizar a tabela na tela
     function atualizarTabela() {
         const tbody = document.getElementById('estoque-corpo');
         tbody.innerHTML = '';
@@ -79,14 +212,13 @@
                 <td>${codigo}</td>
                 <td>${item.nome}</td>
                 <td class="${item.qtd <= 5 ? 'low-stock' : ''}">${item.qtd}</td>
+                <td>${item.ultimoColaborador || '-'}</td>
             </tr>`;
             tbody.innerHTML += row;
         }
-        // Salva no LocalStorage
-        localStorage.setItem('epi_estoque', JSON.stringify(estoque));
+        localStorage.setItem('dprj_estoque', JSON.stringify(estoque));
     }
 
-    // Função de Entrada
     function registrarEntrada() {
         let codigo = document.getElementById('codigo').value;
         let nome = document.getElementById('nome').value;
@@ -95,47 +227,57 @@
         if (!codigo) return alert('Insira um código!');
 
         if (estoque[codigo]) {
-            estoque[codigo].qtd += qtd; // Soma se já existe
+            estoque[codigo].qtd += qtd;
         } else {
-            if(!nome) return alert('Para um EPI novo, informe o nome!');
-            estoque[codigo] = { nome: nome, qtd: qtd, estoqueMinimo: 5 }; // Cadastra novo
+            if(!nome) return alert('Para um material novo, informe o nome!');
+            estoque[codigo] = { nome: nome, qtd: qtd, ultimoColaborador: '' }; 
         }
         
         atualizarTabela();
         alert('Entrada registrada com sucesso!');
+        limparCampos();
     }
 
-    // Função de Saída
     function registrarSaida() {
         let codigo = document.getElementById('codigo').value;
         let qtd = parseInt(document.getElementById('quantidade').value);
+        let colaborador = document.getElementById('colaborador').value;
 
         if (!codigo) return alert('Insira um código!');
-        if (!estoque[codigo]) return alert('EPI não encontrado no estoque!');
+        if (!colaborador) return alert('Informe o nome do colaborador para registrar a saída!');
+        if (!estoque[codigo]) return alert('Material não encontrado no estoque!');
         if (estoque[codigo].qtd < qtd) return alert('Estoque insuficiente!');
 
         estoque[codigo].qtd -= qtd;
+        estoque[codigo].ultimoColaborador = colaborador;
+        
         atualizarTabela();
-        alert('Saída registrada com sucesso!');
+        alert('Saída registrada para ' + colaborador + ' com sucesso!');
+        limparCampos();
     }
 
-    // Configuração do Leitor de Código de Barras
+    function limparCampos() {
+        document.getElementById('codigo').value = '';
+        document.getElementById('nome').value = '';
+        document.getElementById('colaborador').value = '';
+        document.getElementById('quantidade').value = '1';
+    }
+
+    // Configuração do Leitor
     function onScanSuccess(decodedText, decodedResult) {
-        // Preenche o campo de código automaticamente e toca um som suave se quiser implementar depois
         document.getElementById('codigo').value = decodedText;
     }
 
     function onScanFailure(error) {
-        // Silenciado para não poluir o console enquanto tenta ler
+        // Silenciado para evitar travamentos
     }
 
     let html5QrcodeScanner = new Html5QrcodeScanner(
         "reader",
         { fps: 10, qrbox: {width: 250, height: 100} },
-        /* verbose= */ false);
+        false);
     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 
-    // Carrega a tabela ao abrir a página
     atualizarTabela();
 </script>
 
