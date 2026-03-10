@@ -39,7 +39,6 @@
         tr:nth-child(even) { background-color: #f9f9f9; }
         .low-stock { color: var(--dprj-alerta); font-weight: bold; }
         
-        /* Loading Overlay simples */
         #loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 1000; text-align: center; padding-top: 20%; font-size: 24px; font-weight: bold; color: var(--dprj-verde); }
     </style>
 </head>
@@ -96,6 +95,13 @@
                 </tbody>
         </table>
     </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button onclick="exportarCSV()" style="background-color: var(--dprj-dourado); color: var(--texto); width: auto; padding: 10px 20px; border-radius: 6px;">
+            📄 Exportar Relatório (Excel)
+        </button>
+    </div>
+
 </div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -114,21 +120,19 @@
         appId: "1:457390284148:web:fd915a6cd73904c3186021"
     };
 
-    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Monitorar Estoque em Tempo Real
     let estoqueLocal = {};
     const tbody = document.getElementById('estoque-corpo');
 
     onSnapshot(collection(db, "estoque"), (snapshot) => {
         tbody.innerHTML = '';
-        estoqueLocal = {}; // Limpa o objeto local
+        estoqueLocal = {}; 
 
         snapshot.forEach((doc) => {
             let item = doc.data();
-            estoqueLocal[doc.id] = item; // Salva copia local para validações
+            estoqueLocal[doc.id] = item; 
 
             let row = `<tr>
                 <td>${doc.id}</td>
@@ -140,7 +144,6 @@
         });
     });
 
-    // Funções anexadas ao window para o HTML poder chamá-las (por ser um script type="module")
     window.registrarEntrada = async function() {
         let codigo = document.getElementById('codigo').value.trim();
         let nome = document.getElementById('nome').value.trim();
@@ -156,11 +159,9 @@
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                // Se o produto já existe, soma a quantidade
                 let novaQtd = docSnap.data().qtd + qtd;
                 await updateDoc(docRef, { qtd: novaQtd });
             } else {
-                // Se é novo, exige o nome e cadastra
                 if (!nome) {
                     mostrarLoading(false);
                     return alert('Para um material novo, informe o nome!');
@@ -189,7 +190,6 @@
         if (!colaborador) return alert('Informe o nome do colaborador!');
         if (qtd <= 0 || isNaN(qtd)) return alert('Quantidade inválida!');
 
-        // Verifica no estoque local se existe e se tem quantidade
         if (!estoqueLocal[codigo]) return alert('Material não encontrado no estoque!');
         if (estoqueLocal[codigo].qtd < qtd) return alert('Estoque insuficiente para esta saída!');
 
@@ -213,7 +213,35 @@
         mostrarLoading(false);
     };
 
-    // Utilidades
+    // Função NOVA: Exportar para CSV (Excel)
+    window.exportarCSV = function() {
+        if (Object.keys(estoqueLocal).length === 0) {
+            return alert('Não há dados no estoque para exportar!');
+        }
+
+        let csvContent = "Código;Material/EPI;Quantidade;Última Retirada Por\n";
+
+        for (let codigo in estoqueLocal) {
+            let item = estoqueLocal[codigo];
+            let linha = `${codigo};${item.nome};${item.qtd};${item.ultimoColaborador || '-'}`;
+            csvContent += linha + "\n";
+        }
+
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        
+        const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", `relatorio_estoque_dprj_${dataHoje}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     function limparCampos() {
         document.getElementById('codigo').value = '';
         document.getElementById('nome').value = '';
@@ -225,7 +253,6 @@
         document.getElementById('loading').style.display = mostrar ? 'block' : 'none';
     }
 
-    // Configuração do Leitor de Câmera
     function onScanSuccess(decodedText) {
         document.getElementById('codigo').value = decodedText;
     }
