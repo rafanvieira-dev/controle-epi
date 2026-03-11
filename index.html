@@ -67,8 +67,8 @@
         .btn-admin { background-color: #34495e; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; }
         .btn-admin:hover { background-color: #2c3e50; }
         
-        /* Botão Novo de Fluxo */
-        .btn-fluxo { background-color: var(--accent); color: var(--text-main); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: none; }
+        /* Botão de Fluxo (Agora visível por padrão) */
+        .btn-fluxo { background-color: var(--accent); color: var(--text-main); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-block; }
         .btn-fluxo:hover { filter: brightness(0.9); }
 
         /* --- ÁREA DE LOGIN ADMIN --- */
@@ -189,7 +189,7 @@
 <div id="abaEstoque" class="container">
     <div class="card">
         <div class="table-header-controls">
-            <button class="btn-fluxo" id="btnVerFluxo" onclick="toggleFluxo()">📜 Ver Fluxo de Materiais</button>
+            <button class="btn-fluxo" id="btnVerFluxo" onclick="acessarFluxo()">📜 Ver Fluxo de Materiais</button>
             <span id="badgeAdminStatus" style="color: var(--danger); font-weight: bold; display: none;">👑 Modo Admin Ativo</span>
         </div>
 
@@ -236,7 +236,6 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    // IMPORTANTE: Adicionado 'addDoc' para gravar no histórico de Fluxo
     import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -253,6 +252,7 @@
 
     let estoqueLocal = {};
     let isAdmin = false;
+    let fluxoCarregado = false;
     let abaAtual = 'saida';
     let leitorCamera = null;
 
@@ -301,7 +301,7 @@
 
     mudarAba('saida');
 
-    // --- AUTENTICAÇÃO DE ADMIN ---
+    // --- AUTENTICAÇÃO DE ADMIN (Botão de Login na Aba Entrada) ---
     window.fazerLoginAdmin = function() {
         let senha = prompt("Digite a senha de administrador:");
         if (senha === "admin123") {
@@ -311,18 +311,47 @@
             // Desbloqueia tela de Entrada
             document.getElementById('bloqueioEntrada').style.display = 'none';
             document.getElementById('conteudoEntrada').style.display = 'flex';
-            iniciarCamera("readerEntrada"); 
+            if(abaAtual === 'entrada') iniciarCamera("readerEntrada"); 
             
-            // Desbloqueia Tabela de Estoque e Fluxo
+            // Desbloqueia Tabela de Estoque
             document.querySelectorAll('.col-acoes').forEach(el => el.style.display = 'table-cell');
             document.getElementById('badgeAdminStatus').style.display = 'inline-block';
-            
-            // Liberta o novo botão de Fluxo
-            document.getElementById('btnVerFluxo').style.display = 'inline-block';
-            iniciarLeituraFluxo(); // Inicia a escuta da nova tabela do Firebase
-
         } else if (senha !== null) {
             alert("❌ Senha incorreta!");
+        }
+    };
+
+    // --- ACESSAR FLUXO (Exige senha se não for Admin) ---
+    window.acessarFluxo = function() {
+        if (!isAdmin) {
+            let senha = prompt("🔒 Acesso Restrito. Digite a senha para ver o Fluxo de Materiais:");
+            if (senha === "admin123") {
+                isAdmin = true;
+                // Aproveita e já liberta o resto do sistema
+                document.getElementById('bloqueioEntrada').style.display = 'none';
+                document.getElementById('conteudoEntrada').style.display = 'flex';
+                document.querySelectorAll('.col-acoes').forEach(el => el.style.display = 'table-cell');
+                document.getElementById('badgeAdminStatus').style.display = 'inline-block';
+            } else {
+                if(senha !== null) alert("❌ Senha incorreta!");
+                return; // Bloqueia a ação
+            }
+        }
+
+        let area = document.getElementById('areaFluxo');
+        if (area.style.display === 'none' || area.style.display === '') {
+            area.style.display = 'block';
+            document.getElementById('btnVerFluxo').innerText = "⬆️ Ocultar Fluxo de Materiais";
+            
+            if (!fluxoCarregado) {
+                iniciarLeituraFluxo();
+                fluxoCarregado = true;
+            }
+            
+            setTimeout(() => area.scrollIntoView({ behavior: 'smooth' }), 100);
+        } else {
+            area.style.display = 'none';
+            document.getElementById('btnVerFluxo').innerText = "📜 Ver Fluxo de Materiais";
         }
     };
 
@@ -383,19 +412,6 @@
         });
     }
 
-    // --- EXIBIR/OCULTAR FLUXO NA TELA ---
-    window.toggleFluxo = function() {
-        let area = document.getElementById('areaFluxo');
-        if (area.style.display === 'none' || area.style.display === '') {
-            area.style.display = 'block';
-            document.getElementById('btnVerFluxo').innerText = "⬆️ Ocultar Fluxo de Materiais";
-            area.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            area.style.display = 'none';
-            document.getElementById('btnVerFluxo').innerText = "📜 Ver Fluxo de Materiais";
-        }
-    };
-
     // --- FUNÇÕES DE SAÍDA (Grava no Estoque e no Fluxo) ---
     window.registrarSaida = async function() {
         let codigo = document.getElementById('codigoSaida').value.trim();
@@ -416,7 +432,7 @@
                 ultimoColaborador: colaborador
             });
 
-            // 2. Salva o Registo de Fluxo no Firebase (NOVO)
+            // 2. Salva o Registo de Fluxo no Firebase
             await addDoc(collection(db, "fluxo"), {
                 tipo: "Saída",
                 codigo: codigo,
@@ -460,7 +476,7 @@
                 alert(`📥 Novo material (${nome}) cadastrado com sucesso!`);
             }
 
-            // Salva o Registo de Entrada no Fluxo (NOVO)
+            // Salva o Registo de Entrada no Fluxo
             await addDoc(collection(db, "fluxo"), {
                 tipo: "Entrada",
                 codigo: codigo,
