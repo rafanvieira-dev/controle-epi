@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Materiais - NUDOF DPRJ</title>
+    <title>Controle de EPI e Materiais - DPRJ</title>
     <style>
         /* --- VARIÁVEIS INSTITUCIONAIS DPRJ --- */
         :root {
@@ -21,57 +21,57 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 15px; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 10px; }
 
         /* --- CABEÇALHO --- */
         .app-header { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 8px 8px 0 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-bottom: 4px solid var(--accent); max-width: 1200px; margin: 0 auto; }
-        .app-header h1 { font-size: 1.5rem; margin-bottom: 5px; }
-        .app-header p { font-size: 0.9rem; opacity: 0.9; }
+        .app-header h1 { font-size: 1.4rem; margin-bottom: 5px; }
+        .app-header p { font-size: 0.85rem; opacity: 0.9; }
 
-        /* --- ABAS DE NAVEGAÇÃO --- */
+        /* --- ABAS PRINCIPAIS --- */
         .tabs { display: flex; max-width: 1200px; margin: 0 auto 20px auto; background: var(--card-bg); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 0 0 8px 8px; overflow: hidden; }
-        .tab-btn { flex: 1; padding: 15px; border: none; background: transparent; font-size: 1rem; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: all 0.3s; border-bottom: 3px solid transparent; }
+        .tab-btn { flex: 1; padding: 15px 5px; border: none; background: transparent; font-size: 0.95rem; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: all 0.3s; border-bottom: 3px solid transparent; }
         .tab-btn:hover { background: #f0f0f0; color: var(--primary); }
         .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #eafaea; }
 
-        /* --- CONTAINER PRINCIPAL --- */
-        .container { max-width: 1200px; margin: 0 auto; display: none; animation: fadeIn 0.3s ease-in-out; }
-        .container.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         /* --- LAYOUT RESPONSIVO (GRID) --- */
+        .container { max-width: 1200px; margin: 0 auto; display: none; animation: fadeIn 0.3s; }
+        .container.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         .layout-grid { display: flex; flex-direction: column; gap: 20px; }
         @media (min-width: 768px) {
             .layout-grid { flex-direction: row; align-items: flex-start; }
             .scanner-section { flex: 1; position: sticky; top: 20px; }
             .form-section { flex: 1.5; }
             body { padding: 30px; }
-            .app-header h1 { font-size: 2rem; }
+            .app-header h1 { font-size: 1.8rem; }
+            .tab-btn { font-size: 1.1rem; padding: 15px; }
         }
 
-        /* --- CARTÕES (CARDS) --- */
+        /* --- COMPONENTES --- */
         .card { background: var(--card-bg); padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        .scanner-section { border: 2px dashed var(--primary); background-color: #fafafa; text-align: center; padding: 15px; }
         
-        .scanner-section { border: 2px dashed var(--primary); background-color: #fafafa; text-align: center; }
-        
-        /* --- FORMULÁRIOS --- */
-        .form-group { margin-bottom: 15px; }
-        label { font-weight: 600; color: var(--primary-dark); font-size: 0.95rem; display: block; margin-bottom: 6px; }
+        .form-group { margin-bottom: 20px; }
+        label { font-weight: 600; color: var(--primary-dark); font-size: 0.95rem; display: block; margin-bottom: 8px; }
         input { width: 100%; padding: 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; transition: border 0.3s; }
         input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 107, 51, 0.2); }
         
         /* --- BOTÕES --- */
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 25px; }
-        @media (min-width: 768px) { .btn-group { flex-direction: row; } }
-        
-        button.btn-action { flex: 1; padding: 15px; border-radius: 6px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; transition: all 0.2s; color: white; text-transform: uppercase; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-entrada { background-color: var(--primary); }
-        .btn-entrada:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
+        button.btn-action { width: 100%; padding: 16px; border-radius: 6px; border: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; color: white; text-transform: uppercase; }
         .btn-saida { background-color: var(--danger); }
-        .btn-saida:hover { background-color: var(--danger-dark); transform: translateY(-2px); }
-        .btn-admin { background-color: #34495e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-saida:hover { background-color: var(--danger-dark); }
+        .btn-entrada { background-color: var(--primary); }
+        .btn-entrada:hover { background-color: var(--primary-dark); }
+        .btn-admin { background-color: #34495e; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; }
         .btn-admin:hover { background-color: #2c3e50; }
         .btn-export { background-color: var(--accent); color: var(--text-main); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
+
+        /* --- ÁREA DE LOGIN ADMIN --- */
+        .admin-lock { text-align: center; padding: 30px 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; }
+        .admin-lock h3 { color: var(--primary-dark); margin-bottom: 10px; }
+        .admin-lock p { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem; }
         
         /* --- TABELA DE ESTOQUE --- */
         .table-header-controls { display: flex; flex-direction: column; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -79,17 +79,17 @@
 
         .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; min-width: 700px; }
-        th, td { border-bottom: 1px solid var(--border-color); padding: 15px; text-align: left; }
+        th, td { border-bottom: 1px solid var(--border-color); padding: 12px; text-align: left; }
         th { background-color: #f8f9fa; color: var(--primary); font-weight: bold; border-bottom: 2px solid var(--primary); }
         tr:hover { background-color: #f4f7f6; }
         .low-stock { color: var(--danger); font-weight: bold; background: #fdeaea; padding: 4px 8px; border-radius: 4px; }
         
-        /* Botões da Tabela (Admin) */
-        .btn-icon { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 0.85rem; margin-right: 5px; }
+        .btn-icon { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 0.8rem; margin-right: 5px; }
         .btn-edit { background: #f39c12; } .btn-edit:hover { background: #d68910; }
         .btn-delete { background: var(--danger); } .btn-delete:hover { background: var(--danger-dark); }
-        .col-acoes { display: none; width: 160px; } /* Oculta a coluna de ações por padrão */
+        .col-acoes { display: none; }
 
+        /* --- LOADING --- */
         #loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 1000; text-align: center; padding-top: 30vh; font-size: 1.5rem; font-weight: bold; color: var(--primary); flex-direction: column; align-items: center; }
         .spinner { border: 6px solid #f3f3f3; border-top: 6px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -99,60 +99,95 @@
 
 <div id="loading">
     <div class="spinner"></div>
-    <span>Sincronizando com a Nuvem...</span>
+    <span>A Processar...</span>
 </div>
 
 <header class="app-header">
-    <h1>⚖️ Controle de Materiais e EPI</h1>
-    <p>Núcleo de Digitalização - DPRJ</p>
+    <h1>⚖️ Controle de EPI e Materiais</h1>
+    <p>Núcleo de Digitalização - NUDOF/DPRJ</p>
 </header>
 
 <div class="tabs">
-    <button class="tab-btn active" id="tabMov" onclick="alternarAba('movimentacao')">🔄 Entradas / Saídas</button>
-    <button class="tab-btn" id="tabEstoque" onclick="alternarAba('estoque')">📦 Estoque Geral</button>
+    <button class="tab-btn active" id="tabBtnSaida" onclick="mudarAba('saida')">📤 Registrar Saída</button>
+    <button class="tab-btn" id="tabBtnEntrada" onclick="mudarAba('entrada')">📥 Repor Estoque</button>
+    <button class="tab-btn" id="tabBtnEstoque" onclick="mudarAba('estoque')">📦 Estoque Geral</button>
 </div>
 
-<div id="movimentacao" class="container active">
+<div id="abaSaida" class="container active">
     <div class="layout-grid">
         <div class="scanner-section card">
-            <h3 style="color: var(--primary-dark); margin-bottom: 15px;">📷 Leitor de Código de Barras</h3>
-            <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">Aponte a câmera para o código de barras do material.</p>
+            <h3 style="color: var(--primary-dark); margin-bottom: 15px;">📷 Leitor de Código</h3>
+            <div id="readerSaida" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">Aponte a câmara para ler o material.</p>
         </div>
 
         <div class="form-section card">
-            <h3 style="color: var(--primary-dark); margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">📋 Dados da Movimentação</h3>
+            <h2 style="color: var(--danger); margin-bottom: 20px; border-bottom: 2px solid var(--danger); padding-bottom: 10px;">📤 Formulário de Saída</h2>
             
             <div class="form-group">
-                <label>Código do Produto (Leitor ou Digitação):</label>
-                <input type="text" id="codigo" placeholder="Ex: 7891234567890">
+                <label>Código do Produto (Lido ou Digitado):</label>
+                <input type="text" id="codigoSaida" placeholder="Ex: 7891234567890">
             </div>
             <div class="form-group">
-                <label>Nome do Material <small style="color:#888;">(Preencha apenas se for material novo)</small>:</label>
-                <input type="text" id="nome" placeholder="Ex: Papel A4, Toner, Grampeador...">
+                <label>Nome do Colaborador (Obrigatório):</label>
+                <input type="text" id="colaboradorSaida" placeholder="Quem está a retirar o material?">
             </div>
             <div class="form-group">
-                <label>Nome do Colaborador <small style="color:#888;">(Apenas para registrar Saída)</small>:</label>
-                <input type="text" id="colaborador" placeholder="Ex: Rafael Vieira">
-            </div>
-            <div class="form-group">
-                <label>Quantidade a Movimentar:</label>
-                <input type="number" id="quantidade" value="1" min="1">
+                <label>Quantidade a Retirar:</label>
+                <input type="number" id="quantidadeSaida" value="1" min="1">
             </div>
 
-            <div class="btn-group">
-                <button class="btn-action btn-entrada" onclick="registrarEntrada()">📥 Entrada (Adicionar)</button>
-                <button class="btn-action btn-saida" onclick="registrarSaida()">📤 Saída (Retirar)</button>
-            </div>
+            <button class="btn-action btn-saida" onclick="registrarSaida()">📤 Confirmar Saída</button>
         </div>
     </div>
 </div>
 
-<div id="estoque" class="container">
+<div id="abaEntrada" class="container">
+    <div class="layout-grid">
+        
+        <div id="bloqueioEntrada" class="form-section card" style="width: 100%; max-width: 500px; margin: 0 auto;">
+            <div class="admin-lock">
+                <h3 style="font-size: 3rem; margin: 0;">🔒</h3>
+                <h3>Acesso Restrito</h3>
+                <p>Apenas administradores podem adicionar novos materiais ou repor o estoque existente.</p>
+                <button class="btn-admin" onclick="fazerLoginAdmin()">Desbloquear Acesso Admin</button>
+            </div>
+        </div>
+
+        <div id="conteudoEntrada" style="display: none; width: 100%;" class="layout-grid">
+            <div class="scanner-section card">
+                <h3 style="color: var(--primary-dark); margin-bottom: 15px;">📷 Leitor de Código</h3>
+                <div id="readerEntrada" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
+            </div>
+
+            <div class="form-section card">
+                <h2 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">📥 Reposição de Estoque</h2>
+                
+                <div class="form-group">
+                    <label>Código do Produto:</label>
+                    <input type="text" id="codigoEntrada" placeholder="Ex: 7891234567890">
+                </div>
+                <div class="form-group">
+                    <label>Nome do Material / EPI:<br><small style="color:#888; font-weight:normal;">(Só é necessário preencher se for um produto novo)</small></label>
+                    <input type="text" id="nomeEntrada" placeholder="Ex: Luva P, Resma A4...">
+                </div>
+                <div class="form-group">
+                    <label>Quantidade a Adicionar:</label>
+                    <input type="number" id="quantidadeEntrada" value="1" min="1">
+                </div>
+
+                <button class="btn-action btn-entrada" onclick="registrarEntrada()">📥 Adicionar ao Estoque</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="abaEstoque" class="container">
     <div class="card">
         <div class="table-header-controls">
-            <button class="btn-export" onclick="exportarCSV()">📄 Exportar Relatório (Excel)</button>
-            <button class="btn-admin" id="btnAdminLogin" onclick="ativarModoAdmin()">🔒 Acesso Admin (Editar)</button>
+            <button class="btn-export" onclick="exportarCSV()">📄 Exportar Planilha Excel</button>
+            <span id="badgeAdminStatus" style="color: var(--danger); font-weight: bold; display: none;">👑 Modo Admin Ativo</span>
         </div>
 
         <div class="table-responsive">
@@ -161,13 +196,13 @@
                     <tr>
                         <th>Código</th>
                         <th>Material / EPI</th>
-                        <th>Em Estoque</th>
+                        <th>Qtd. Atual</th>
                         <th>Última Retirada Por</th>
-                        <th class="col-acoes">Ações Restritas</th>
+                        <th class="col-acoes">Ações do Admin</th>
                     </tr>
                 </thead>
                 <tbody id="estoque-corpo">
-                    <tr><td colspan="5" style="text-align:center;">Carregando dados do estoque...</td></tr>
+                    <tr><td colspan="5" style="text-align:center;">A carregar dados da nuvem...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -178,7 +213,6 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    // IMPORTANTE: Adicionado 'deleteDoc' para permitir que o admin exclua itens
     import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -194,212 +228,203 @@
     const db = getFirestore(app);
 
     let estoqueLocal = {};
-    let modoAdminAtivo = false;
-    const tbody = document.getElementById('estoque-corpo');
+    let isAdmin = false;
+    let abaAtual = 'saida';
+    let leitorCamera = null;
 
-    // --- LÓGICA DE ABAS ---
-    window.alternarAba = function(abaId) {
+    // --- GESTÃO DE ABAS E CÂMARA ---
+    window.mudarAba = function(abaId) {
+        abaAtual = abaId;
+        
+        // Esconder todos os containers e limpar tabs
         document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         
-        document.getElementById(abaId).classList.add('active');
-        if(abaId === 'movimentacao') {
-            document.getElementById('tabMov').classList.add('active');
-        } else {
-            document.getElementById('tabEstoque').classList.add('active');
+        // Mostrar a aba correta
+        if (abaId === 'saida') {
+            document.getElementById('abaSaida').classList.add('active');
+            document.getElementById('tabBtnSaida').classList.add('active');
+            iniciarCamera("readerSaida");
+        } else if (abaId === 'entrada') {
+            document.getElementById('abaEntrada').classList.add('active');
+            document.getElementById('tabBtnEntrada').classList.add('active');
+            if (isAdmin) iniciarCamera("readerEntrada"); 
+            else pararCamera();
+        } else if (abaId === 'estoque') {
+            document.getElementById('abaEstoque').classList.add('active');
+            document.getElementById('tabBtnEstoque').classList.add('active');
+            pararCamera(); // Na tabela não precisa de câmara
         }
     };
 
-    // --- LEITOR DE QR CODE / CÓDIGO DE BARRAS ---
-    function onScanSuccess(decodedText) {
-        document.getElementById('codigo').value = decodedText;
-        // Vibração leve se suportado pelo telemóvel
-        if (navigator.vibrate) navigator.vibrate(100);
+    // --- LÓGICA DO LEITOR DE CÓDIGO DE BARRAS ---
+    function iniciarCamera(divId) {
+        pararCamera(); // Para evitar duas instâncias a correr ao mesmo tempo
+        leitorCamera = new Html5QrcodeScanner(divId, { fps: 10, qrbox: {width: 250, height: 150} }, false);
+        leitorCamera.render(onScanSuccess, () => {});
     }
-    let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 150} }, false);
-    html5QrcodeScanner.render(onScanSuccess, () => {});
 
-    // --- RENDERIZAR TABELA EM TEMPO REAL ---
-    onSnapshot(collection(db, "estoque"), (snapshot) => {
-        estoqueLocal = {}; 
-        let html = '';
-        
-        if (snapshot.empty) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum material no estoque.</td></tr>';
-            return;
+    function pararCamera() {
+        if (leitorCamera) {
+            try { leitorCamera.clear(); } catch(e) {}
+            leitorCamera = null;
         }
+    }
+
+    function onScanSuccess(decodedText) {
+        if (abaAtual === 'saida') document.getElementById('codigoSaida').value = decodedText;
+        if (abaAtual === 'entrada') document.getElementById('codigoEntrada').value = decodedText;
+        if (navigator.vibrate) navigator.vibrate(200); // Feedback tátil
+    }
+
+    // --- INICIALIZA A PRIMEIRA ABA ---
+    mudarAba('saida');
+
+    // --- AUTENTICAÇÃO DE ADMIN ---
+    window.fazerLoginAdmin = function() {
+        let senha = prompt("Digite a senha de administrador:");
+        if (senha === "admin123") {
+            isAdmin = true;
+            alert("✅ Acesso Liberado!");
+            
+            // Desbloqueia tela de Entrada
+            document.getElementById('bloqueioEntrada').style.display = 'none';
+            document.getElementById('conteudoEntrada').style.display = 'flex';
+            iniciarCamera("readerEntrada"); // Inicia câmara da entrada
+            
+            // Desbloqueia colunas de edição na Tabela de Estoque
+            document.querySelectorAll('.col-acoes').forEach(el => el.style.display = 'table-cell');
+            document.getElementById('badgeAdminStatus').style.display = 'inline-block';
+        } else if (senha !== null) {
+            alert("❌ Senha incorreta!");
+        }
+    };
+
+    // --- RENDERIZAR TABELA DE ESTOQUE ---
+    const tbody = document.getElementById('estoque-corpo');
+    onSnapshot(collection(db, "estoque"), (snapshot) => {
+        estoqueLocal = {}; let html = '';
+        if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum material cadastrado.</td></tr>'; return; }
 
         snapshot.forEach((doc) => {
             let item = doc.data();
             estoqueLocal[doc.id] = item; 
-            
-            let classeEstoqueBaixo = item.qtd <= 5 ? 'low-stock' : '';
-            let estiloAcoes = modoAdminAtivo ? 'display: table-cell;' : 'display: none;';
+            let classeAlerta = item.qtd <= 5 ? 'low-stock' : '';
+            let mostrarAdmin = isAdmin ? 'display: table-cell;' : 'display: none;';
             
             html += `<tr>
                 <td><strong>${doc.id}</strong></td>
                 <td>${item.nome}</td>
-                <td><span class="${classeEstoqueBaixo}">${item.qtd} un.</span></td>
+                <td><span class="${classeAlerta}">${item.qtd} un.</span></td>
                 <td style="color: var(--text-muted);">${item.ultimoColaborador || '---'}</td>
-                <td class="col-acoes" style="${estiloAcoes}">
-                    <button class="btn-icon btn-edit" onclick="editarItemAdmin('${doc.id}')">✏️ Edit</button>
-                    <button class="btn-icon btn-delete" onclick="excluirItemAdmin('${doc.id}')">🗑️ Del</button>
+                <td class="col-acoes" style="${mostrarAdmin}">
+                    <button class="btn-icon btn-edit" onclick="editarItem('${doc.id}')">✏️ Editar</button>
+                    <button class="btn-icon btn-delete" onclick="excluirItem('${doc.id}')">🗑️ Apagar</button>
                 </td>
             </tr>`;
         });
         tbody.innerHTML = html;
     });
 
-    // --- FUNÇÕES PRINCIPAIS (ENTRADA E SAÍDA) ---
-    window.registrarEntrada = async function() {
-        let codigo = document.getElementById('codigo').value.trim();
-        let nome = document.getElementById('nome').value.trim();
-        let qtd = parseInt(document.getElementById('quantidade').value);
+    // --- FUNÇÕES DE SAÍDA (Livre) ---
+    window.registrarSaida = async function() {
+        let codigo = document.getElementById('codigoSaida').value.trim();
+        let colaborador = document.getElementById('colaboradorSaida').value.trim();
+        let qtd = parseInt(document.getElementById('quantidadeSaida').value);
 
-        if (!codigo) return alert('⚠️ Insira ou leia o código do material!');
+        if (!codigo) return alert('⚠️ Leia o código do material!');
+        if (!colaborador) return alert('⚠️ Informe o seu nome (Colaborador)!');
+        if (qtd <= 0 || isNaN(qtd)) return alert('⚠️ Quantidade inválida!');
+        if (!estoqueLocal[codigo]) return alert('❌ Material não encontrado no sistema!');
+        if (estoqueLocal[codigo].qtd < qtd) return alert(`❌ Estoque insuficiente! Só temos ${estoqueLocal[codigo].qtd} unidades.`);
+
+        mostrarLoading(true);
+        try {
+            await updateDoc(doc(db, "estoque", codigo), {
+                qtd: estoqueLocal[codigo].qtd - qtd,
+                ultimoColaborador: colaborador
+            });
+            alert(`📤 Saída concluída! Você retirou ${qtd}x ${estoqueLocal[codigo].nome}.`);
+            document.getElementById('codigoSaida').value = '';
+            document.getElementById('colaboradorSaida').value = '';
+            document.getElementById('quantidadeSaida').value = '1';
+        } catch (e) { alert("❌ Erro: " + e.message); }
+        mostrarLoading(false);
+    };
+
+    // --- FUNÇÕES DE ENTRADA (Admin) ---
+    window.registrarEntrada = async function() {
+        let codigo = document.getElementById('codigoEntrada').value.trim();
+        let nome = document.getElementById('nomeEntrada').value.trim();
+        let qtd = parseInt(document.getElementById('quantidadeEntrada').value);
+
+        if (!codigo) return alert('⚠️ Leia o código do material!');
         if (qtd <= 0 || isNaN(qtd)) return alert('⚠️ Quantidade inválida!');
 
         mostrarLoading(true);
-
         try {
             const docRef = doc(db, "estoque", codigo);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                let novaQtd = docSnap.data().qtd + qtd;
-                await updateDoc(docRef, { qtd: novaQtd });
+                await updateDoc(docRef, { qtd: docSnap.data().qtd + qtd });
+                alert(`📥 Sucesso! Adicionadas ${qtd} unidades ao estoque existente.`);
             } else {
-                if (!nome) {
-                    mostrarLoading(false);
-                    return alert('⚠️ Este material é novo. Por favor, escreva o Nome do Material!');
-                }
+                if (!nome) { mostrarLoading(false); return alert('⚠️ Material NOVO detetado. É obrigatório digitar o Nome do Material!'); }
                 await setDoc(docRef, { nome: nome, qtd: qtd, ultimoColaborador: '' });
+                alert(`📥 Novo material (${nome}) cadastrado com sucesso!`);
             }
-            alert('✅ Entrada de estoque registrada com sucesso!');
-            limparCampos();
-        } catch (e) {
-            alert("❌ Erro ao salvar: " + e.message);
-        }
+            document.getElementById('codigoEntrada').value = '';
+            document.getElementById('nomeEntrada').value = '';
+            document.getElementById('quantidadeEntrada').value = '1';
+        } catch (e) { alert("❌ Erro: " + e.message); }
         mostrarLoading(false);
     };
 
-    window.registrarSaida = async function() {
-        let codigo = document.getElementById('codigo').value.trim();
-        let qtd = parseInt(document.getElementById('quantidade').value);
-        let colaborador = document.getElementById('colaborador').value.trim();
-
-        if (!codigo) return alert('⚠️ Insira ou leia o código!');
-        if (!colaborador) return alert('⚠️ Informe o nome do colaborador que está a retirar o material!');
-        if (qtd <= 0 || isNaN(qtd)) return alert('⚠️ Quantidade inválida!');
-
-        if (!estoqueLocal[codigo]) return alert('❌ Este material não existe no estoque!');
-        if (estoqueLocal[codigo].qtd < qtd) return alert(`❌ Estoque insuficiente! Só existem ${estoqueLocal[codigo].qtd} unidades disponíveis.`);
-
-        mostrarLoading(true);
-
-        try {
-            const docRef = doc(db, "estoque", codigo);
-            let novaQtd = estoqueLocal[codigo].qtd - qtd;
-            await updateDoc(docRef, { qtd: novaQtd, ultimoColaborador: colaborador });
-
-            alert(`📤 Saída registrada! Entregue ${qtd} un. para ${colaborador}.`);
-            limparCampos();
-        } catch (e) {
-            alert("❌ Erro ao registrar saída: " + e.message);
-        }
-        mostrarLoading(false);
-    };
-
-    // --- MODO ADMINISTRADOR (EDIÇÃO E EXCLUSÃO) ---
-    window.ativarModoAdmin = function() {
-        let senha = prompt("🔒 Acesso Restrito. Digite a senha de administrador:");
+    // --- FUNÇÕES DE EDIÇÃO ADMIN (Estoque) ---
+    window.editarItem = async function(id) {
+        let item = estoqueLocal[id];
+        let novoNome = prompt(`Alterar Nome de: ${item.nome}`, item.nome);
+        if (novoNome === null) return;
         
-        // SENHA DEFINIDA AQUI:
-        if (senha === "admin123") {
-            modoAdminAtivo = true;
-            document.getElementById('btnAdminLogin').style.display = 'none';
-            alert("✅ Modo Administrador ativado! Agora pode alterar nomes, quantidades ou excluir itens errados.");
-            
-            // Mostra as colunas de ação na tabela
-            document.querySelectorAll('.col-acoes').forEach(el => el.style.display = 'table-cell');
-        } else if (senha !== null) {
-            alert("❌ Senha incorreta!");
-        }
-    };
-
-    window.editarItemAdmin = async function(id) {
-        let itemAtual = estoqueLocal[id];
-        
-        let novoNome = prompt(`Editando NOME do item (${id}):`, itemAtual.nome);
-        if (novoNome === null) return; // Utilizador cancelou
-
-        let novaQtdStr = prompt(`Editando QUANTIDADE ATUAL do item (${id}):`, itemAtual.qtd);
+        let novaQtdStr = prompt(`Alterar Quantidade Atual:`, item.qtd);
         if (novaQtdStr === null) return;
-        
         let novaQtd = parseInt(novaQtdStr);
         if (isNaN(novaQtd) || novaQtd < 0) return alert("❌ Quantidade inválida.");
 
         mostrarLoading(true);
         try {
-            await updateDoc(doc(db, "estoque", id), {
-                nome: novoNome.trim(),
-                qtd: novaQtd
-            });
-            alert("✅ Item atualizado com sucesso!");
-        } catch (e) {
-            alert("❌ Erro ao atualizar: " + e.message);
-        }
+            await updateDoc(doc(db, "estoque", id), { nome: novoNome.trim(), qtd: novaQtd });
+            alert("✅ Atualizado com sucesso!");
+        } catch (e) { alert("❌ Erro: " + e.message); }
         mostrarLoading(false);
     };
 
-    window.excluirItemAdmin = async function(id) {
-        let itemAtual = estoqueLocal[id];
-        let confirmar = confirm(`⚠️ ATENÇÃO!\nTem certeza que deseja apagar DEFINITIVAMENTE o material:\n\n${itemAtual.nome}\n\nEsta ação não pode ser desfeita!`);
-        
-        if (confirmar) {
+    window.excluirItem = async function(id) {
+        if(confirm(`⚠️ ATENÇÃO!\nVai excluir DEFINITIVAMENTE o item:\n${estoqueLocal[id].nome}\nContinuar?`)) {
             mostrarLoading(true);
-            try {
-                await deleteDoc(doc(db, "estoque", id));
-                alert("🗑️ Item excluído do estoque!");
-            } catch (e) {
-                alert("❌ Erro ao excluir: " + e.message);
-            }
+            try { await deleteDoc(doc(db, "estoque", id)); alert("🗑️ Item apagado!"); } 
+            catch (e) { alert("❌ Erro: " + e.message); }
             mostrarLoading(false);
         }
     };
 
     // --- RELATÓRIO EXCEL ---
     window.exportarCSV = function() {
-        if (Object.keys(estoqueLocal).length === 0) return alert('⚠️ Não há dados no estoque!');
-
+        if (Object.keys(estoqueLocal).length === 0) return alert('⚠️ Estoque vazio!');
         let csvContent = "Código;Material/EPI;Quantidade;Última Retirada Por\n";
         for (let codigo in estoqueLocal) {
             let item = estoqueLocal[codigo];
             csvContent += `${codigo};${item.nome};${item.qtd};${item.ultimoColaborador || '-'}\n`;
         }
-
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `relatorio_materiais_dprj_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        link.href = URL.createObjectURL(blob);
+        link.download = `estoque_dprj_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
     };
 
-    // --- UTILITÁRIOS ---
-    function limparCampos() {
-        document.getElementById('codigo').value = '';
-        document.getElementById('nome').value = '';
-        document.getElementById('colaborador').value = '';
-        document.getElementById('quantidade').value = '1';
-        document.getElementById('codigo').focus();
-    }
-
-    function mostrarLoading(mostrar) {
-        document.getElementById('loading').style.display = mostrar ? 'flex' : 'none';
-    }
+    function mostrarLoading(mostrar) { document.getElementById('loading').style.display = mostrar ? 'flex' : 'none'; }
 </script>
 </body>
 </html>
