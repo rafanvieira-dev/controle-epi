@@ -66,14 +66,17 @@
         .btn-entrada:hover { background-color: var(--primary-dark); }
         .btn-admin { background-color: #34495e; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; }
         .btn-admin:hover { background-color: #2c3e50; }
-        .btn-export { background-color: var(--accent); color: var(--text-main); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
+        
+        /* Botão Novo de Fluxo */
+        .btn-fluxo { background-color: var(--accent); color: var(--text-main); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: none; }
+        .btn-fluxo:hover { filter: brightness(0.9); }
 
         /* --- ÁREA DE LOGIN ADMIN --- */
         .admin-lock { text-align: center; padding: 30px 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; }
         .admin-lock h3 { color: var(--primary-dark); margin-bottom: 10px; }
         .admin-lock p { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem; }
         
-        /* --- TABELA DE ESTOQUE --- */
+        /* --- TABELAS --- */
         .table-header-controls { display: flex; flex-direction: column; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         @media (min-width: 768px) { .table-header-controls { flex-direction: row; } }
 
@@ -186,7 +189,7 @@
 <div id="abaEstoque" class="container">
     <div class="card">
         <div class="table-header-controls">
-            <button class="btn-export" onclick="exportarCSV()">📄 Exportar Planilha Excel</button>
+            <button class="btn-fluxo" id="btnVerFluxo" onclick="toggleFluxo()">📜 Ver Fluxo de Materiais</button>
             <span id="badgeAdminStatus" style="color: var(--danger); font-weight: bold; display: none;">👑 Modo Admin Ativo</span>
         </div>
 
@@ -206,6 +209,26 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="areaFluxo" style="display: none; margin-top: 40px; border-top: 3px solid var(--accent); padding-top: 20px;">
+            <h3 style="color: var(--primary-dark); margin-bottom: 15px;">📜 Histórico de Movimentações</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data e Hora</th>
+                            <th>Material</th>
+                            <th>Movimento</th>
+                            <th>Colaborador / Autor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fluxo-corpo">
+                        <tr><td colspan="4" style="text-align:center;">A carregar histórico...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -213,7 +236,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // IMPORTANTE: Adicionado 'addDoc' para gravar no histórico de Fluxo
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBGdrHQfc5wqXHm4MQfrVtj57FxONy1iGs",
@@ -236,11 +260,9 @@
     window.mudarAba = function(abaId) {
         abaAtual = abaId;
         
-        // Esconder todos os containers e limpar tabs
         document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         
-        // Mostrar a aba correta
         if (abaId === 'saida') {
             document.getElementById('abaSaida').classList.add('active');
             document.getElementById('tabBtnSaida').classList.add('active');
@@ -253,13 +275,13 @@
         } else if (abaId === 'estoque') {
             document.getElementById('abaEstoque').classList.add('active');
             document.getElementById('tabBtnEstoque').classList.add('active');
-            pararCamera(); // Na tabela não precisa de câmara
+            pararCamera(); 
         }
     };
 
-    // --- LÓGICA DO LEITOR DE CÓDIGO DE BARRAS ---
+    // --- LEITOR DE CÓDIGO DE BARRAS ---
     function iniciarCamera(divId) {
-        pararCamera(); // Para evitar duas instâncias a correr ao mesmo tempo
+        pararCamera(); 
         leitorCamera = new Html5QrcodeScanner(divId, { fps: 10, qrbox: {width: 250, height: 150} }, false);
         leitorCamera.render(onScanSuccess, () => {});
     }
@@ -274,10 +296,9 @@
     function onScanSuccess(decodedText) {
         if (abaAtual === 'saida') document.getElementById('codigoSaida').value = decodedText;
         if (abaAtual === 'entrada') document.getElementById('codigoEntrada').value = decodedText;
-        if (navigator.vibrate) navigator.vibrate(200); // Feedback tátil
+        if (navigator.vibrate) navigator.vibrate(200); 
     }
 
-    // --- INICIALIZA A PRIMEIRA ABA ---
     mudarAba('saida');
 
     // --- AUTENTICAÇÃO DE ADMIN ---
@@ -290,11 +311,16 @@
             // Desbloqueia tela de Entrada
             document.getElementById('bloqueioEntrada').style.display = 'none';
             document.getElementById('conteudoEntrada').style.display = 'flex';
-            iniciarCamera("readerEntrada"); // Inicia câmara da entrada
+            iniciarCamera("readerEntrada"); 
             
-            // Desbloqueia colunas de edição na Tabela de Estoque
+            // Desbloqueia Tabela de Estoque e Fluxo
             document.querySelectorAll('.col-acoes').forEach(el => el.style.display = 'table-cell');
             document.getElementById('badgeAdminStatus').style.display = 'inline-block';
+            
+            // Liberta o novo botão de Fluxo
+            document.getElementById('btnVerFluxo').style.display = 'inline-block';
+            iniciarLeituraFluxo(); // Inicia a escuta da nova tabela do Firebase
+
         } else if (senha !== null) {
             alert("❌ Senha incorreta!");
         }
@@ -326,7 +352,51 @@
         tbody.innerHTML = html;
     });
 
-    // --- FUNÇÕES DE SAÍDA (Livre) ---
+    // --- RENDERIZAR NOVO FLUXO (HISTÓRICO) ---
+    function iniciarLeituraFluxo() {
+        onSnapshot(collection(db, "fluxo"), (snapshot) => {
+            let lista = [];
+            snapshot.forEach(doc => lista.push(doc.data()));
+            
+            // Ordenar do mais recente para o mais antigo
+            lista.sort((a,b) => b.dataHora - a.dataHora);
+            
+            let html = '';
+            if(lista.length === 0) {
+                html = '<tr><td colspan="4" style="text-align:center;">Ainda não existem movimentações.</td></tr>';
+            } else {
+                lista.forEach(item => {
+                    let d = new Date(item.dataHora);
+                    let dataFormatada = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR');
+                    let corQtd = item.tipo === 'Saída' ? 'var(--danger)' : 'var(--primary)';
+                    let sinal = item.tipo === 'Saída' ? '-' : '+';
+                    
+                    html += `<tr>
+                        <td><small style="color:var(--text-muted);">${dataFormatada}</small></td>
+                        <td><strong>${item.nomeMaterial}</strong><br><small>Cód: ${item.codigo}</small></td>
+                        <td style="color: ${corQtd}; font-weight: bold; font-size:1.1em;">${sinal}${item.qtd}</td>
+                        <td>${item.colaborador}</td>
+                    </tr>`;
+                });
+            }
+            document.getElementById('fluxo-corpo').innerHTML = html;
+        });
+    }
+
+    // --- EXIBIR/OCULTAR FLUXO NA TELA ---
+    window.toggleFluxo = function() {
+        let area = document.getElementById('areaFluxo');
+        if (area.style.display === 'none' || area.style.display === '') {
+            area.style.display = 'block';
+            document.getElementById('btnVerFluxo').innerText = "⬆️ Ocultar Fluxo de Materiais";
+            area.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            area.style.display = 'none';
+            document.getElementById('btnVerFluxo').innerText = "📜 Ver Fluxo de Materiais";
+        }
+    };
+
+    // --- FUNÇÕES DE SAÍDA (Grava no Estoque e no Fluxo) ---
     window.registrarSaida = async function() {
         let codigo = document.getElementById('codigoSaida').value.trim();
         let colaborador = document.getElementById('colaboradorSaida').value.trim();
@@ -340,11 +410,24 @@
 
         mostrarLoading(true);
         try {
+            // 1. Atualiza a Quantidade no Estoque
             await updateDoc(doc(db, "estoque", codigo), {
                 qtd: estoqueLocal[codigo].qtd - qtd,
                 ultimoColaborador: colaborador
             });
+
+            // 2. Salva o Registo de Fluxo no Firebase (NOVO)
+            await addDoc(collection(db, "fluxo"), {
+                tipo: "Saída",
+                codigo: codigo,
+                nomeMaterial: estoqueLocal[codigo].nome,
+                qtd: qtd,
+                colaborador: colaborador,
+                dataHora: new Date().getTime()
+            });
+
             alert(`📤 Saída concluída! Você retirou ${qtd}x ${estoqueLocal[codigo].nome}.`);
+            
             document.getElementById('codigoSaida').value = '';
             document.getElementById('colaboradorSaida').value = '';
             document.getElementById('quantidadeSaida').value = '1';
@@ -352,7 +435,7 @@
         mostrarLoading(false);
     };
 
-    // --- FUNÇÕES DE ENTRADA (Admin) ---
+    // --- FUNÇÕES DE ENTRADA (Grava no Estoque e no Fluxo) ---
     window.registrarEntrada = async function() {
         let codigo = document.getElementById('codigoEntrada').value.trim();
         let nome = document.getElementById('nomeEntrada').value.trim();
@@ -365,8 +448,10 @@
         try {
             const docRef = doc(db, "estoque", codigo);
             const docSnap = await getDoc(docRef);
+            let nomeDoProduto = nome;
 
             if (docSnap.exists()) {
+                nomeDoProduto = docSnap.data().nome;
                 await updateDoc(docRef, { qtd: docSnap.data().qtd + qtd });
                 alert(`📥 Sucesso! Adicionadas ${qtd} unidades ao estoque existente.`);
             } else {
@@ -374,6 +459,17 @@
                 await setDoc(docRef, { nome: nome, qtd: qtd, ultimoColaborador: '' });
                 alert(`📥 Novo material (${nome}) cadastrado com sucesso!`);
             }
+
+            // Salva o Registo de Entrada no Fluxo (NOVO)
+            await addDoc(collection(db, "fluxo"), {
+                tipo: "Entrada",
+                codigo: codigo,
+                nomeMaterial: nomeDoProduto,
+                qtd: qtd,
+                colaborador: "Admin (Reposição)",
+                dataHora: new Date().getTime()
+            });
+
             document.getElementById('codigoEntrada').value = '';
             document.getElementById('nomeEntrada').value = '';
             document.getElementById('quantidadeEntrada').value = '1';
@@ -407,21 +503,6 @@
             catch (e) { alert("❌ Erro: " + e.message); }
             mostrarLoading(false);
         }
-    };
-
-    // --- RELATÓRIO EXCEL ---
-    window.exportarCSV = function() {
-        if (Object.keys(estoqueLocal).length === 0) return alert('⚠️ Estoque vazio!');
-        let csvContent = "Código;Material/EPI;Quantidade;Última Retirada Por\n";
-        for (let codigo in estoqueLocal) {
-            let item = estoqueLocal[codigo];
-            csvContent += `${codigo};${item.nome};${item.qtd};${item.ultimoColaborador || '-'}\n`;
-        }
-        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `estoque_dprj_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
     };
 
     function mostrarLoading(mostrar) { document.getElementById('loading').style.display = mostrar ? 'flex' : 'none'; }
