@@ -64,8 +64,8 @@
         
         .form-group { margin-bottom: 20px; }
         label { font-weight: 600; color: var(--primary-dark); font-size: 0.95rem; display: block; margin-bottom: 8px; }
-        input { width: 100%; padding: 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; transition: border 0.3s; }
-        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 107, 51, 0.2); }
+        input, select { width: 100%; padding: 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; transition: border 0.3s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 107, 51, 0.2); }
         
         /* --- BOTÕES --- */
         button.btn-action { width: 100%; padding: 16px; border-radius: 6px; border: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; color: white; text-transform: uppercase; }
@@ -73,6 +73,8 @@
         .btn-saida:hover { background-color: var(--danger-dark); }
         .btn-entrada { background-color: var(--primary); }
         .btn-entrada:hover { background-color: var(--primary-dark); }
+        .btn-add-carrinho { background-color: #3498db; width: auto; padding: 14px 20px; }
+        .btn-add-carrinho:hover { background-color: #2980b9; }
         
         .btn-fluxo { background-color: var(--accent); color: var(--text-main); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: none; }
         .btn-fluxo:hover { filter: brightness(0.9); }
@@ -86,8 +88,8 @@
         .table-header-controls { display: flex; flex-direction: column; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         @media (min-width: 768px) { .table-header-controls { flex-direction: row; } }
 
-        .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; min-width: 100%; }
         th, td { border-bottom: 1px solid var(--border-color); padding: 12px; text-align: left; }
         th { background-color: #f8f9fa; color: var(--primary); font-weight: bold; border-bottom: 2px solid var(--primary); }
         tr:hover { background-color: #f4f7f6; }
@@ -103,18 +105,10 @@
         .spinner { border: 6px solid #f3f3f3; border-top: 6px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- RODAPÉ (ASSINATURA) --- */
-        .app-footer {
-            text-align: center;
-            padding: 25px 15px 15px 15px;
-            margin-top: 40px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border-color);
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+        /* --- RODAPÉ --- */
+        .app-footer { text-align: center; padding: 25px 15px 15px 15px; margin-top: 40px; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color); max-width: 1200px; margin-left: auto; margin-right: auto; }
+        
+        .carrinho-total { background: #f8f9fa; padding: 10px; border-radius: 6px; font-weight: bold; text-align: right; color: var(--primary-dark); margin-bottom: 15px; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
@@ -148,7 +142,7 @@
     </header>
 
     <div class="tabs">
-        <button class="tab-btn active" id="tabBtnSaida" onclick="mudarAba('saida')">📤 Registrar Saída</button>
+        <button class="tab-btn active" id="tabBtnSaida" onclick="mudarAba('saida')">🛒 Ponto de Saída</button>
         <button class="tab-btn" id="tabBtnEntrada" onclick="mudarAba('entrada')">📥 Repor Estoque</button>
         <button class="tab-btn" id="tabBtnEstoque" onclick="mudarAba('estoque')">📦 Estoque Geral</button>
     </div>
@@ -156,28 +150,48 @@
     <div id="abaSaida" class="container active">
         <div class="layout-grid">
             <div class="scanner-section card">
-                <h3 style="color: var(--primary-dark); margin-bottom: 15px;">📷 Leitor de Código</h3>
+                <h3 style="color: var(--primary-dark); margin-bottom: 15px;">📷 Leitor Contínuo</h3>
                 <div id="readerSaida" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">Aponte a câmara para ler o material.</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">Aponte a câmara para ler o material. Ele será adicionado automaticamente ao carrinho.</p>
             </div>
 
             <div class="form-section card">
-                <h2 style="color: var(--danger); margin-bottom: 20px; border-bottom: 2px solid var(--danger); padding-bottom: 10px;">📤 Formulário de Saída</h2>
+                <h2 style="color: var(--danger); margin-bottom: 20px; border-bottom: 2px solid var(--danger); padding-bottom: 10px;">🛒 Carrinho de Retirada</h2>
                 
                 <div class="form-group">
-                    <label>Código do Produto (Lido ou Digitado):</label>
-                    <input type="text" id="codigoSaida" placeholder="Ex: 7891234567890">
-                </div>
-                <div class="form-group">
-                    <label>Para quem é o material? (Destinatário):</label>
+                    <label>Para quem é o material? (Destinatário único para o carrinho):</label>
                     <input type="text" id="colaboradorSaida" placeholder="Ex: João da Silva">
                 </div>
-                <div class="form-group">
-                    <label>Quantidade a Retirar:</label>
-                    <input type="number" id="quantidadeSaida" value="1" min="1">
+                
+                <div class="form-group" style="display: flex; gap: 10px; align-items: flex-end;">
+                    <div style="flex: 1;">
+                        <label>Código do Produto (Bipar ou Digitar):</label>
+                        <input type="text" id="codigoSaida" placeholder="Ex: 7891234567890" onkeypress="if(event.key === 'Enter') adicionarAoCarrinho()">
+                    </div>
+                    <button class="btn-action btn-add-carrinho" onclick="adicionarAoCarrinho()">➕ Adicionar</button>
                 </div>
 
-                <button class="btn-action btn-saida" onclick="registrarSaida()">📤 Confirmar Saída</button>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cód</th>
+                                <th>Material / EPI</th>
+                                <th style="text-align: center;">Qtd</th>
+                                <th style="text-align: center;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoCarrinho">
+                            <tr><td colspan="4" style="text-align:center; color: #888;">O carrinho está vazio.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="carrinho-total" id="totalItensCarrinho">
+                    Total de Itens: 0
+                </div>
+
+                <button class="btn-action btn-saida" onclick="registrarSaidaCarrinho()">📤 Confirmar Saída do Carrinho</button>
             </div>
         </div>
     </div>
@@ -207,13 +221,40 @@
                         <label>Código do Produto:</label>
                         <input type="text" id="codigoEntrada" placeholder="Ex: 7891234567890">
                     </div>
+                    
                     <div class="form-group">
-                        <label>Nome do Material / EPI:<br><small style="color:#888; font-weight:normal;">(Só é necessário preencher se for um produto novo)</small></label>
-                        <input type="text" id="nomeEntrada" placeholder="Ex: Luva P, Resma A4...">
+                        <label>Nome do Material / EPI:</label>
+                        <select id="nomeEntradaSelect" onchange="verificarOutroNome()">
+                            <option value="">-- Selecione ou deixe em branco se for repor item já existente --</option>
+                            <option value="Luva de Látex (Tam P)">Luva de Látex (Tam P)</option>
+                            <option value="Luva de Látex (Tam M)">Luva de Látex (Tam M)</option>
+                            <option value="Luva de Látex (Tam G)">Luva de Látex (Tam G)</option>
+                            <option value="Capa de Chuva">Capa de Chuva</option>
+                            <option value="Máscara Descartável (Pacote)">Máscara Descartável (Pacote)</option>
+                            <option value="Máscara N95">Máscara N95</option>
+                            <option value="Óculos de Proteção">Óculos de Proteção</option>
+                            <option value="Resma A4">Resma A4</option>
+                            <option value="OUTRO">Outro (Digitar nome do novo material...)</option>
+                        </select>
+                        <input type="text" id="nomeEntradaTexto" placeholder="Digite o nome do novo material" style="display:none; margin-top: 10px;">
                     </div>
-                    <div class="form-group">
-                        <label>Quantidade a Adicionar:</label>
-                        <input type="number" id="quantidadeEntrada" value="1" min="1">
+
+                    <div class="form-group" style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label>Formato:</label>
+                            <select id="formatoEntrada" onchange="verificarFormato()">
+                                <option value="unidade">Unidade(s)</option>
+                                <option value="caixa">Caixa(s) Fechada(s)</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Quantidade:</label>
+                            <input type="number" id="quantidadeEntrada" value="1" min="1">
+                        </div>
+                        <div style="flex: 1; display: none;" id="divUnidadesCaixa">
+                            <label>Unidades por Caixa:</label>
+                            <input type="number" id="unidadesPorCaixa" value="10" min="1">
+                        </div>
                     </div>
 
                     <button class="btn-action btn-entrada" onclick="registrarEntrada()">📥 Adicionar ao Estoque</button>
@@ -280,10 +321,6 @@
     import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    // -------------------------------------------------------------------------
-    // ⚠️ CONFIGURAÇÃO IMPORTANTE: LISTA DE ADMINISTRADORES
-    // Coloque aqui todos os e-mails que terão acesso total (Entrada, Editar, Histórico)
-    // -------------------------------------------------------------------------
     const ADMIN_EMAILS = [
         "gabriel.monteiro@defensoria.rj.def.br",
         "rafaela.panema@defensoria.rj.def.br",
@@ -310,6 +347,9 @@
     let fluxoCarregado = false;
     let abaAtual = 'saida';
     let leitorCamera = null;
+    
+    // Variável para o Carrinho
+    let carrinhoSaida = {};
 
     // --- AUTENTICAÇÃO E CONTROLO DE ACESSOS ---
     onAuthStateChanged(auth, (user) => {
@@ -398,8 +438,12 @@
     }
 
     function onScanSuccess(decodedText) {
-        if (abaAtual === 'saida') document.getElementById('codigoSaida').value = decodedText;
-        if (abaAtual === 'entrada') document.getElementById('codigoEntrada').value = decodedText;
+        if (abaAtual === 'saida') {
+            adicionarAoCarrinho(decodedText);
+        }
+        if (abaAtual === 'entrada') {
+            document.getElementById('codigoEntrada').value = decodedText;
+        }
         if (navigator.vibrate) navigator.vibrate(200); 
     }
 
@@ -429,12 +473,12 @@
         tbody.innerHTML = html;
     });
 
-    // --- RENDERIZAR NOVO FLUXO (HISTÓRICO) ---
+    // --- RENDERIZAR HISTÓRICO ---
     function iniciarLeituraFluxo() {
         onSnapshot(collection(db, "fluxo"), (snapshot) => {
             let lista = [];
             snapshot.forEach(doc => lista.push(doc.data()));
-            lista.sort((a,b) => b.dataHora - a.dataHora); // Mais recente primeiro
+            lista.sort((a,b) => b.dataHora - a.dataHora);
             
             let html = '';
             if(lista.length === 0) {
@@ -468,56 +512,194 @@
         }
     };
 
-    // --- FUNÇÕES DE SAÍDA ---
-    window.registrarSaida = async function() {
-        let codigo = document.getElementById('codigoSaida').value.trim();
+    // ==================== LÓGICA DO CARRINHO (SAÍDA) ====================
+    
+    window.adicionarAoCarrinho = function(codigoLido) {
+        let codigo = codigoLido || document.getElementById('codigoSaida').value.trim();
+        if (!codigo) return;
+        
+        if (!estoqueLocal[codigo]) {
+            alert('❌ Material não encontrado no estoque!');
+            document.getElementById('codigoSaida').value = '';
+            return;
+        }
+
+        let itemEstoque = estoqueLocal[codigo];
+        let qtdNoCarrinho = carrinhoSaida[codigo] ? carrinhoSaida[codigo].qtd : 0;
+
+        // Verifica se tem estoque suficiente para adicionar mais um no carrinho
+        if (itemEstoque.qtd <= qtdNoCarrinho) {
+            alert(`❌ Estoque insuficiente! Só existem ${itemEstoque.qtd} unidades de "${itemEstoque.nome}" disponíveis.`);
+            document.getElementById('codigoSaida').value = '';
+            return;
+        }
+
+        if (carrinhoSaida[codigo]) {
+            carrinhoSaida[codigo].qtd++;
+        } else {
+            carrinhoSaida[codigo] = { nome: itemEstoque.nome, qtd: 1 };
+        }
+
+        document.getElementById('codigoSaida').value = ''; // Limpa para o próximo bip
+        document.getElementById('codigoSaida').focus(); // Mantém o cursor no campo
+        atualizarTelaCarrinho();
+    };
+
+    window.removerItemCarrinho = function(codigo) {
+        if (carrinhoSaida[codigo]) {
+            carrinhoSaida[codigo].qtd--;
+            if (carrinhoSaida[codigo].qtd <= 0) {
+                delete carrinhoSaida[codigo];
+            }
+            atualizarTelaCarrinho();
+        }
+    };
+
+    window.removerTudoCarrinho = function(codigo) {
+        delete carrinhoSaida[codigo];
+        atualizarTelaCarrinho();
+    }
+
+    function atualizarTelaCarrinho() {
+        let html = '';
+        let totalUnidades = 0;
+        let keys = Object.keys(carrinhoSaida);
+
+        if (keys.length === 0) {
+            html = '<tr><td colspan="4" style="text-align:center; color: #888;">O carrinho está vazio.</td></tr>';
+        } else {
+            for (let cod of keys) {
+                let item = carrinhoSaida[cod];
+                totalUnidades += item.qtd;
+                html += `<tr>
+                    <td><small>${cod}</small></td>
+                    <td><strong>${item.nome}</strong></td>
+                    <td style="text-align: center; font-size: 1.2em; font-weight: bold;">${item.qtd}</td>
+                    <td style="text-align: center;">
+                        <button class="btn-icon btn-edit" onclick="removerItemCarrinho('${cod}')" title="Remover 1">-1</button>
+                        <button class="btn-icon btn-delete" onclick="removerTudoCarrinho('${cod}')" title="Remover Todos">Excluir</button>
+                    </td>
+                </tr>`;
+            }
+        }
+        
+        document.getElementById('corpoCarrinho').innerHTML = html;
+        document.getElementById('totalItensCarrinho').innerText = `Total de Unidades no Carrinho: ${totalUnidades}`;
+    }
+
+    window.registrarSaidaCarrinho = async function() {
         let colaborador = document.getElementById('colaboradorSaida').value.trim();
-        let qtd = parseInt(document.getElementById('quantidadeSaida').value);
+        let keys = Object.keys(carrinhoSaida);
 
-        if (!codigo) return alert('⚠️ Leia o código do material!');
-        if (!colaborador) return alert('⚠️ Informe quem está recebendo o material!');
-        if (qtd <= 0 || isNaN(qtd)) return alert('⚠️ Quantidade inválida!');
-        if (!estoqueLocal[codigo]) return alert('❌ Material não encontrado no sistema!');
-        if (estoqueLocal[codigo].qtd < qtd) return alert(`❌ Estoque insuficiente! Só temos ${estoqueLocal[codigo].qtd} unidades.`);
+        if (!colaborador) return alert('⚠️ Informe quem está recebendo os materiais!');
+        if (keys.length === 0) return alert('⚠️ O carrinho está vazio! Bipe ou adicione algum material.');
 
-        mostrarLoading(true, "A gravar saída...");
+        mostrarLoading(true, "A gravar saídas...");
         try {
-            await updateDoc(doc(db, "estoque", codigo), { qtd: estoqueLocal[codigo].qtd - qtd, ultimoColaborador: colaborador });
-            await addDoc(collection(db, "fluxo"), {
-                tipo: "Saída", codigo: codigo, nomeMaterial: estoqueLocal[codigo].nome, qtd: qtd,
-                colaborador: colaborador, operadorSistema: currentUser.email, dataHora: new Date().getTime()
-            });
-            alert(`📤 Saída concluída!`);
-            document.getElementById('codigoSaida').value = ''; document.getElementById('colaboradorSaida').value = ''; document.getElementById('quantidadeSaida').value = '1';
-        } catch (e) { alert("❌ Erro: " + e.message); }
+            // Processa cada item do carrinho
+            for (let cod of keys) {
+                let itemCart = carrinhoSaida[cod];
+                
+                // Redundância de segurança na hora de salvar
+                if (!estoqueLocal[cod] || estoqueLocal[cod].qtd < itemCart.qtd) {
+                    throw new Error(`Estoque de ${itemCart.nome} ficou insuficiente antes de salvar.`);
+                }
+
+                let novaQtd = estoqueLocal[cod].qtd - itemCart.qtd;
+                
+                // Atualiza o estoque
+                await updateDoc(doc(db, "estoque", cod), { qtd: novaQtd, ultimoColaborador: colaborador });
+                
+                // Registra no fluxo
+                await addDoc(collection(db, "fluxo"), {
+                    tipo: "Saída", codigo: cod, nomeMaterial: itemCart.nome, qtd: itemCart.qtd,
+                    colaborador: colaborador, operadorSistema: currentUser.email, dataHora: new Date().getTime()
+                });
+            }
+            
+            alert(`📤 Retirada concluída com sucesso!`);
+            
+            // Limpa o carrinho e a tela
+            carrinhoSaida = {};
+            document.getElementById('colaboradorSaida').value = '';
+            atualizarTelaCarrinho();
+            
+        } catch (e) { 
+            alert("❌ Erro ao finalizar saída: " + e.message); 
+        }
         mostrarLoading(false);
     };
 
-    // --- FUNÇÕES DE ENTRADA ---
+    // ==================== LÓGICA DE ENTRADA (CAIXAS E DROPDOWN) ====================
+
+    window.verificarOutroNome = function() {
+        let select = document.getElementById('nomeEntradaSelect').value;
+        document.getElementById('nomeEntradaTexto').style.display = select === 'OUTRO' ? 'block' : 'none';
+    };
+
+    window.verificarFormato = function() {
+        let formato = document.getElementById('formatoEntrada').value;
+        document.getElementById('divUnidadesCaixa').style.display = formato === 'caixa' ? 'block' : 'none';
+    };
+
     window.registrarEntrada = async function() {
         let codigo = document.getElementById('codigoEntrada').value.trim();
-        let nome = document.getElementById('nomeEntrada').value.trim();
-        let qtd = parseInt(document.getElementById('quantidadeEntrada').value);
+        
+        // Define o nome escolhido
+        let selectValue = document.getElementById('nomeEntradaSelect').value;
+        let nome = selectValue === 'OUTRO' ? document.getElementById('nomeEntradaTexto').value.trim() : selectValue;
+        
+        // Cálculos de Quantidade e Caixas
+        let formato = document.getElementById('formatoEntrada').value;
+        let qtdDigitada = parseInt(document.getElementById('quantidadeEntrada').value);
+        let qtdTotalCalculada = qtdDigitada;
 
         if (!codigo) return alert('⚠️ Leia o código do material!');
-        if (qtd <= 0 || isNaN(qtd)) return alert('⚠️ Quantidade inválida!');
+        if (qtdDigitada <= 0 || isNaN(qtdDigitada)) return alert('⚠️ Quantidade inválida!');
+
+        if (formato === 'caixa') {
+            let undCaixa = parseInt(document.getElementById('unidadesPorCaixa').value);
+            if (isNaN(undCaixa) || undCaixa <= 0) return alert('⚠️ Informe quantas unidades vêm na caixa!');
+            qtdTotalCalculada = qtdDigitada * undCaixa;
+        }
 
         mostrarLoading(true, "A gravar entrada...");
         try {
-            const docRef = doc(db, "estoque", codigo); const docSnap = await getDoc(docRef); let nomeDoProduto = nome;
+            const docRef = doc(db, "estoque", codigo); 
+            const docSnap = await getDoc(docRef); 
+            let nomeFinalDoProduto = nome;
+            
             if (docSnap.exists()) {
-                nomeDoProduto = docSnap.data().nome; await updateDoc(docRef, { qtd: docSnap.data().qtd + qtd });
-                alert(`📥 Sucesso! Adicionadas ${qtd} unidades ao estoque existente.`);
+                // Se o produto já existe, a prioridade é o nome que já está no banco de dados
+                nomeFinalDoProduto = docSnap.data().nome; 
+                await updateDoc(docRef, { qtd: docSnap.data().qtd + qtdTotalCalculada });
+                alert(`📥 Sucesso! Adicionadas ${qtdTotalCalculada} unidades ao estoque existente de "${nomeFinalDoProduto}".`);
             } else {
-                if (!nome) { mostrarLoading(false); return alert('⚠️ Material NOVO detetado. É obrigatório digitar o Nome do Material!'); }
-                await setDoc(docRef, { nome: nome, qtd: qtd, ultimoColaborador: '' });
-                alert(`📥 Novo material (${nome}) cadastrado!`);
+                // Se o produto é novo, exige o preenchimento do nome
+                if (!nome) { 
+                    mostrarLoading(false); 
+                    return alert('⚠️ Material NOVO detetado. Selecione ou digite o Nome do Material!'); 
+                }
+                nomeFinalDoProduto = nome;
+                await setDoc(docRef, { nome: nomeFinalDoProduto, qtd: qtdTotalCalculada, ultimoColaborador: '' });
+                alert(`📥 Novo material (${nomeFinalDoProduto}) cadastrado com ${qtdTotalCalculada} unidades!`);
             }
+            
+            // Grava no histórico o fluxo de entrada
             await addDoc(collection(db, "fluxo"), {
-                tipo: "Entrada", codigo: codigo, nomeMaterial: nomeDoProduto, qtd: qtd,
-                colaborador: "Estoque", operadorSistema: currentUser.email, dataHora: new Date().getTime()
+                tipo: "Entrada", codigo: codigo, nomeMaterial: nomeFinalDoProduto, qtd: qtdTotalCalculada,
+                colaborador: "Reposição de Estoque", operadorSistema: currentUser.email, dataHora: new Date().getTime()
             });
-            document.getElementById('codigoEntrada').value = ''; document.getElementById('nomeEntrada').value = ''; document.getElementById('quantidadeEntrada').value = '1';
+            
+            // Limpar formulário de entrada
+            document.getElementById('codigoEntrada').value = ''; 
+            document.getElementById('nomeEntradaSelect').value = '';
+            document.getElementById('nomeEntradaTexto').value = '';
+            document.getElementById('nomeEntradaTexto').style.display = 'none';
+            document.getElementById('quantidadeEntrada').value = '1';
+            document.getElementById('formatoEntrada').value = 'unidade';
+            document.getElementById('divUnidadesCaixa').style.display = 'none';
+            
         } catch (e) { alert("❌ Erro: " + e.message); }
         mostrarLoading(false);
     };
