@@ -264,13 +264,19 @@
     </div>
 
     <div id="abaEstoque" class="container">
-        <div class="card">
+        
+        <div class="card" id="areaPrincipalEstoque">
             <div class="table-header-controls">
                 <button class="btn-fluxo" id="btnVerFluxo" onclick="toggleFluxo()">📜 Ver Fluxo de Materiais</button>
                 <span id="badgeAdminStatus" style="color: var(--primary); font-weight: bold; display: none; background: #eafaea; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--primary);">👑 Admin</span>
             </div>
 
-            <div class="table-responsive">
+            <div id="areaBusca" class="form-group" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
+                <label style="font-size: 1.1rem; color: var(--primary-dark);">🔍 Buscar Material no Estoque:</label>
+                <input type="text" id="buscaEstoque" placeholder="Digite o nome ou código do material..." onkeyup="filtrarEstoque()" style="background-color: #f8f9fa;">
+            </div>
+
+            <div class="table-responsive" id="areaTabelaEstoque">
                 <table>
                     <thead>
                         <tr>
@@ -282,8 +288,7 @@
                         </tr>
                     </thead>
                     <tbody id="estoque-corpo">
-                        <tr><td colspan="5" style="text-align:center;">A carregar dados da nuvem...</td></tr>
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
 
@@ -306,6 +311,33 @@
                 </div>
             </div>
         </div>
+
+        <div class="form-section card" id="areaEdicaoEstoque" style="display: none; border: 2px solid var(--primary);">
+            <h2 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">✏️ Editar Material</h2>
+            
+            <input type="hidden" id="editId">
+            
+            <div class="form-group">
+                <label>Código do Produto (Fixo):</label>
+                <input type="text" id="editCodigo" disabled style="background: #e9ecef; cursor: not-allowed; color: #666;">
+            </div>
+            
+            <div class="form-group">
+                <label>Nome do Material / EPI:</label>
+                <input type="text" id="editNome" placeholder="Ex: Luva de Látex">
+            </div>
+
+            <div class="form-group">
+                <label>Quantidade em Estoque:</label>
+                <input type="number" id="editQtd" min="0">
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <button class="btn-action btn-entrada" style="flex: 2;" onclick="salvarEdicao()">💾 Salvar Alterações</button>
+                <button class="btn-action btn-saida" style="flex: 1;" onclick="cancelarEdicao()">❌ Cancelar</button>
+            </div>
+        </div>
+
     </div>
 
     <div class="app-footer">
@@ -447,32 +479,6 @@
         }
         if (navigator.vibrate) navigator.vibrate(200); 
     }
-
-    // --- RENDERIZAR TABELA DE ESTOQUE ---
-    const tbody = document.getElementById('estoque-corpo');
-    onSnapshot(collection(db, "estoque"), (snapshot) => {
-        estoqueLocal = {}; let html = '';
-        if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum material cadastrado.</td></tr>'; return; }
-
-        snapshot.forEach((doc) => {
-            let item = doc.data();
-            estoqueLocal[doc.id] = item; 
-            let classeAlerta = item.qtd <= 5 ? 'low-stock' : '';
-            let mostrarAdmin = isAdmin ? 'display: table-cell;' : 'display: none;';
-            
-            html += `<tr>
-                <td><strong>${doc.id}</strong></td>
-                <td>${item.nome}</td>
-                <td><span class="${classeAlerta}">${item.qtd} un.</span></td>
-                <td style="color: var(--text-muted);">${item.ultimoColaborador || '---'}</td>
-                <td class="col-acoes" style="${mostrarAdmin}">
-                    <button class="btn-icon btn-edit" onclick="editarItem('${doc.id}')">✏️ Edit</button>
-                    <button class="btn-icon btn-delete" onclick="excluirItem('${doc.id}')">🗑️ Del</button>
-                </td>
-            </tr>`;
-        });
-        tbody.innerHTML = html;
-    });
 
     // --- RENDERIZAR HISTÓRICO ---
     function iniciarLeituraFluxo() {
@@ -705,15 +711,110 @@
         mostrarLoading(false);
     };
 
-    // --- FUNÇÕES DE EDIÇÃO ADMIN (Estoque) ---
-    window.editarItem = async function(id) {
+    // ==================== LÓGICA DE BUSCA E RENDERIZAÇÃO DE ESTOQUE ====================
+    window.filtrarEstoque = function() {
+        renderizarTabelaEstoque();
+    };
+
+    function renderizarTabelaEstoque() {
+        const tbody = document.getElementById('estoque-corpo');
+        const termoBusca = document.getElementById('buscaEstoque').value.toLowerCase().trim();
+        let html = '';
+
+        // Mantém a lista invisível se não houver texto na busca
+        if (termoBusca === '') {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted); font-size: 1.1rem;">Nenhum material exibido.<br><small>Utilize o campo de busca acima (nome ou código) para encontrar itens.</small></td></tr>';
+            return;
+        }
+
+        let encontrou = false;
+        for (const id in estoqueLocal) {
+            let item = estoqueLocal[id];
+            
+            // Verifica se o texto digitado bate com o nome ou o código
+            if (item.nome.toLowerCase().includes(termoBusca) || id.toLowerCase().includes(termoBusca)) {
+                encontrou = true;
+                let classeAlerta = item.qtd <= 5 ? 'low-stock' : '';
+                let mostrarAdminTd = isAdmin ? 'display: table-cell;' : 'display: none;';
+                let mostrarAdminBtn = isAdmin ? 'display: inline-block;' : 'display: none;';
+                
+                html += `<tr>
+                    <td><strong>${id}</strong></td>
+                    <td style="display: flex; align-items: center; gap: 10px;">
+                        ${item.nome}
+                        <button class="btn-icon btn-edit" style="${mostrarAdminBtn} padding: 4px 8px; font-size: 0.7rem; margin: 0;" onclick="abrirTelaEdicao('${id}')" title="Abrir formulário de edição">
+                            ✏️ Editar
+                        </button>
+                    </td>
+                    <td><span class="${classeAlerta}">${item.qtd} un.</span></td>
+                    <td style="color: var(--text-muted);">${item.ultimoColaborador || '---'}</td>
+                    <td class="col-acoes" style="${mostrarAdminTd}">
+                        <button class="btn-icon btn-delete" onclick="excluirItem('${id}')">🗑️ Del</button>
+                    </td>
+                </tr>`;
+            }
+        }
+
+        if (!encontrou) {
+            html = '<tr><td colspan="5" style="text-align:center; color: var(--danger); padding: 20px; font-weight: bold;">Nenhum material encontrado com este termo.</td></tr>';
+        }
+
+        tbody.innerHTML = html;
+    }
+
+    // Escuta o banco de dados e alimenta a lista local
+    onSnapshot(collection(db, "estoque"), (snapshot) => {
+        estoqueLocal = {};
+        if (!snapshot.empty) {
+            snapshot.forEach((doc) => {
+                estoqueLocal[doc.id] = doc.data();
+            });
+        }
+        renderizarTabelaEstoque(); // Atualiza a tela baseada no que está digitado na busca
+    });
+
+
+    // ==================== LÓGICA DE EDIÇÃO (NOVA TELA) E EXCLUSÃO ====================
+    window.abrirTelaEdicao = function(id) {
         let item = estoqueLocal[id];
-        let novoNome = prompt(`Alterar Nome de: ${item.nome}`, item.nome); if (novoNome === null) return;
-        let novaQtdStr = prompt(`Alterar Quantidade Atual:`, item.qtd); if (novaQtdStr === null) return;
-        let novaQtd = parseInt(novaQtdStr); if (isNaN(novaQtd) || novaQtd < 0) return alert("❌ Quantidade inválida.");
-        mostrarLoading(true, "A atualizar...");
-        try { await updateDoc(doc(db, "estoque", id), { nome: novoNome.trim(), qtd: novaQtd }); alert("✅ Atualizado!"); } 
-        catch (e) { alert("❌ Erro: " + e.message); }
+        
+        // Preenche os campos da nova tela
+        document.getElementById('editId').value = id;
+        document.getElementById('editCodigo').value = id;
+        document.getElementById('editNome').value = item.nome;
+        document.getElementById('editQtd').value = item.qtd;
+        
+        // Oculta a área de busca/tabela e mostra o formulário de edição
+        document.getElementById('areaPrincipalEstoque').style.display = 'none';
+        document.getElementById('areaEdicaoEstoque').style.display = 'block';
+    };
+
+    window.cancelarEdicao = function() {
+        // Limpa os dados e volta para a tela inicial do Estoque
+        document.getElementById('editNome').value = '';
+        document.getElementById('editQtd').value = '';
+        document.getElementById('areaEdicaoEstoque').style.display = 'none';
+        document.getElementById('areaPrincipalEstoque').style.display = 'block';
+        document.getElementById('buscaEstoque').value = ''; // Limpa o termo buscado
+        renderizarTabelaEstoque(); // Atualiza a tabela com o ecrã limpo
+    };
+
+    window.salvarEdicao = async function() {
+        let id = document.getElementById('editId').value;
+        let novoNome = document.getElementById('editNome').value.trim();
+        let novaQtd = parseInt(document.getElementById('editQtd').value);
+
+        if (!novoNome) return alert("❌ O nome do material não pode ficar vazio.");
+        if (isNaN(novaQtd) || novaQtd < 0) return alert("❌ Quantidade inválida. Digite 0 ou um número maior.");
+
+        mostrarLoading(true, "A salvar alterações...");
+        try { 
+            await updateDoc(doc(db, "estoque", id), { nome: novoNome, qtd: novaQtd }); 
+            cancelarEdicao(); // Retorna automaticamente para a aba inicial
+            alert("✅ Atualizado com sucesso!");
+        } catch (e) { 
+            alert("❌ Erro ao atualizar no Firebase: " + e.message); 
+        }
         mostrarLoading(false);
     };
 
