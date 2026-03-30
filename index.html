@@ -90,7 +90,7 @@
 
         .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; min-width: 100%; }
-        th, td { border-bottom: 1px solid var(--border-color); padding: 12px; text-align: left; }
+        th, td { border-bottom: 1px solid var(--border-color); padding: 12px; text-align: left; vertical-align: middle; }
         th { background-color: #f8f9fa; color: var(--primary); font-weight: bold; border-bottom: 2px solid var(--primary); }
         tr:hover { background-color: #f4f7f6; }
         .low-stock { color: var(--danger); font-weight: bold; background: #fdeaea; padding: 4px 8px; border-radius: 4px; }
@@ -738,13 +738,16 @@
                 let mostrarAdminTd = isAdmin ? 'display: table-cell;' : 'display: none;';
                 let mostrarAdminBtn = isAdmin ? 'display: inline-block;' : 'display: none;';
                 
+                // CORREÇÃO: Envolvendo o conteúdo em uma div com flexbox, mantendo a tag td intacta
                 html += `<tr>
                     <td><strong>${id}</strong></td>
-                    <td style="display: flex; align-items: center; gap: 10px;">
-                        ${item.nome}
-                        <button class="btn-icon btn-edit" style="${mostrarAdminBtn} padding: 4px 8px; font-size: 0.7rem; margin: 0;" onclick="abrirTelaEdicao('${id}')" title="Abrir formulário de edição">
-                            ✏️ Editar
-                        </button>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            ${item.nome}
+                            <button class="btn-icon btn-edit" style="${mostrarAdminBtn} padding: 4px 8px; font-size: 0.7rem; margin: 0;" onclick="abrirTelaEdicao('${id}')" title="Abrir formulário de edição">
+                                ✏️ Editar
+                            </button>
+                        </div>
                     </td>
                     <td><span class="${classeAlerta}">${item.qtd} un.</span></td>
                     <td style="color: var(--text-muted);">${item.ultimoColaborador || '---'}</td>
