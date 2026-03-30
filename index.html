@@ -720,10 +720,10 @@
         const tbody = document.getElementById('estoque-corpo');
         const termoBusca = document.getElementById('buscaEstoque').value.toLowerCase().trim();
         let html = '';
-
-        // Mantém a lista invisível se não houver texto na busca
-        if (termoBusca === '') {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted); font-size: 1.1rem;">Nenhum material exibido.<br><small>Utilize o campo de busca acima (nome ou código) para encontrar itens.</small></td></tr>';
+        
+        // Verifica se não existem itens registados de todo
+        if (Object.keys(estoqueLocal).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum material cadastrado.</td></tr>';
             return;
         }
 
@@ -731,8 +731,8 @@
         for (const id in estoqueLocal) {
             let item = estoqueLocal[id];
             
-            // Verifica se o texto digitado bate com o nome ou o código
-            if (item.nome.toLowerCase().includes(termoBusca) || id.toLowerCase().includes(termoBusca)) {
+            // Se a busca estiver vazia, mostra todos. Se não, filtra pelo texto.
+            if (termoBusca === '' || item.nome.toLowerCase().includes(termoBusca) || id.toLowerCase().includes(termoBusca)) {
                 encontrou = true;
                 let classeAlerta = item.qtd <= 5 ? 'low-stock' : '';
                 let mostrarAdminTd = isAdmin ? 'display: table-cell;' : 'display: none;';
