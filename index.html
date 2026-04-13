@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de EPI e Materiais - DPGERJ (Com Lotes e Firebase)</title>
+    <title>Controle de EPI e Materiais - DPGERJ</title>
     <style>
         /* --- VARIÁVEIS INSTITUCIONAIS DPRJ --- */
         :root {
@@ -403,7 +403,7 @@
                 </div>
                 <div class="form-group">
                     <label>Lote:</label>
-                    <input type="text" id="editLote" disabled style="background: #e9ecef; cursor: not-allowed; color: #666;">
+                    <input type="text" id="editLote" placeholder="Digite o novo lote">
                 </div>
             </div>
             
@@ -996,16 +996,47 @@
 
     document.getElementById('btnSalvarEdicao').addEventListener('click', async () => {
         let key = document.getElementById('editId').value;
+        let codigoAntigo = document.getElementById('editCodigo').value;
+        let nLote = document.getElementById('editLote').value.trim();
         let nNome = document.getElementById('editNome').value.trim();
         let nDesc = document.getElementById('editDescricao').value.trim();
         let nVal = document.getElementById('editValidade').value;
         let nQtd = parseInt(document.getElementById('editQtd').value);
 
-        if (!nNome || isNaN(nQtd) || nQtd < 0) return alert("❌ Verifique Nome e Quantidade!");
+        if (!nNome || !nLote || isNaN(nQtd) || nQtd < 0) return alert("❌ Verifique Nome, Lote e Quantidade!");
 
         mostrarLoading(true, "Salvando...");
         try { 
-            await updateDoc(doc(db, "estoque", key), { nome: nNome, descricao: nDesc, validade: nVal, qtd: nQtd }); 
+            let loteOriginal = estoqueLocal[key].lote || '';
+            
+            // Lógica inteligente para alteração de lotes (ou para atribuir lote a um item antigo)
+            if (nLote !== loteOriginal) {
+                let novaKey = `${codigoAntigo}_${nLote}`;
+                
+                // Cria o novo documento com a chave atualizada
+                await setDoc(doc(db, "estoque", novaKey), { 
+                    codigo: codigoAntigo, 
+                    lote: nLote, 
+                    nome: nNome, 
+                    descricao: nDesc, 
+                    validade: nVal, 
+                    qtd: nQtd,
+                    ultimoColaborador: estoqueLocal[key].ultimoColaborador || ''
+                });
+                
+                // Apaga o registo antigo com a chave errada/velha
+                await deleteDoc(doc(db, "estoque", key));
+            } else {
+                // Atualização normal se o lote se manteve
+                await updateDoc(doc(db, "estoque", key), { 
+                    lote: nLote, 
+                    nome: nNome, 
+                    descricao: nDesc, 
+                    validade: nVal, 
+                    qtd: nQtd 
+                }); 
+            }
+            
             document.getElementById('btnCancelarEdicao').click();
             alert("✅ Atualizado com sucesso!");
         } catch (e) { alert("❌ Erro: " + e.message); }
@@ -1014,7 +1045,9 @@
 
     window.excluirItem = async function(key) {
         let nomeItem = estoqueLocal[key].nome || 'Item Desconhecido';
-        if(confirm(`⚠️ Vai excluir DEFINITIVAMENTE:\n${nomeItem}\nContinuar?`)) {
+        let loteItem = estoqueLocal[key].lote ? `(Lote: ${estoqueLocal[key].lote})` : '';
+        
+        if(confirm(`⚠️ Vai excluir DEFINITIVAMENTE:\n${nomeItem} ${loteItem}\nContinuar?`)) {
             mostrarLoading(true, "Excluindo...");
             try { await deleteDoc(doc(db, "estoque", key)); alert("🗑️ Item apagado!"); } 
             catch (e) { alert("❌ Erro: " + e.message); }
