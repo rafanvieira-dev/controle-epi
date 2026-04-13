@@ -437,7 +437,7 @@
     </div>
 
     <div class="app-footer" style="text-align: center; padding: 25px; margin-top: 20px; color: var(--text-muted); font-size: 0.9rem;">
-        Desenvolvido para DPGERJ - NUDOF | Controle de EPIs com Lotes
+        Desenvolvido por Rafael N. Vieira e Gemini
     </div>
 
 </div>
@@ -481,6 +481,7 @@
     // Variáveis temporárias para o Modal de Lotes
     let lotesTemp = [];
     let loteSelecionadoIndex = undefined;
+    let listenerEstoque = null;
 
     // --- UTILITÁRIOS ---
     function mostrarLoading(mostrar, texto = "Processando...") { 
@@ -500,6 +501,22 @@
         return { class: '', text: dataValidade.toLocaleDateString('pt-BR') };
     }
 
+    // --- SINCRONIZAÇÃO DE ESTOQUE (FIREBASE -> LOCAL) ---
+    function iniciarSincronizacaoEstoque() {
+        listenerEstoque = onSnapshot(collection(db, "estoque"), (snapshot) => {
+            estoqueLocal = {};
+            if (!snapshot.empty) {
+                snapshot.forEach((doc) => {
+                    estoqueLocal[doc.id] = doc.data();
+                });
+            }
+            renderizarTabelaEstoque();
+            atualizarSelectProdutosSaida();
+        }, (error) => {
+            console.error("Erro de permissão no Firebase:", error);
+        });
+    }
+
     // --- AUTENTICAÇÃO ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -510,6 +527,7 @@
             document.getElementById('appMain').style.display = 'block';
             document.getElementById('nomeOperadorHeader').innerHTML = `👤 Logado como: <b>${user.displayName || user.email}</b>`;
             
+            iniciarSincronizacaoEstoque();
             aplicarPermissoes();
         } else {
             currentUser = null;
@@ -517,6 +535,8 @@
             document.getElementById('loginSection').style.display = 'flex';
             document.getElementById('appMain').style.display = 'none';
             pararCamera();
+            
+            if(listenerEstoque) listenerEstoque(); 
         }
         mostrarLoading(false);
     });
@@ -600,18 +620,6 @@
         if (navigator.vibrate) navigator.vibrate(200); 
     }
 
-    // --- SINCRONIZAÇÃO DE ESTOQUE (FIREBASE -> LOCAL) ---
-    onSnapshot(collection(db, "estoque"), (snapshot) => {
-        estoqueLocal = {};
-        if (!snapshot.empty) {
-            snapshot.forEach((doc) => {
-                estoqueLocal[doc.id] = doc.data();
-            });
-        }
-        renderizarTabelaEstoque();
-        atualizarSelectProdutosSaida();
-    });
-
     // --- LÓGICA DE ENTRADA ---
     document.getElementById('nomeEntradaSelect').addEventListener('change', function() {
         document.getElementById('nomeEntradaTexto').style.display = this.value === 'OUTRO' ? 'block' : 'none';
@@ -643,7 +651,6 @@
 
         mostrarLoading(true, "A gravar entrada...");
         try {
-            // Chave Primária agora é Codigo_Lote
             const docKey = `${codigo}_${lote}`;
             const docRef = doc(db, "estoque", docKey); 
             const docSnap = await getDoc(docRef); 
@@ -686,10 +693,15 @@
         
         for (let key in estoqueLocal) {
             const item = estoqueLocal[key];
-            if (!produtosUnicos.has(item.codigo)) {
-                produtosUnicos.set(item.codigo, { codigo: item.codigo, nome: item.nome, qtdTotal: 0 });
+            
+            // PROTEÇÃO para itens antigos
+            const codigoReal = item.codigo || key; 
+            const nomeReal = item.nome || 'Produto Antigo';
+            
+            if (!produtosUnicos.has(codigoReal)) {
+                produtosUnicos.set(codigoReal, { codigo: codigoReal, nome: nomeReal, qtdTotal: 0 });
             }
-            produtosUnicos.get(item.codigo).qtdTotal += item.qtd;
+            produtosUnicos.get(codigoReal).qtdTotal += item.qtd;
         }
         
         let html = '<option value="">-- Selecione um produto --</option>';
@@ -717,10 +729,13 @@
 
         const lotesDisponiveis = [];
         for (let key in estoqueLocal) {
-            if (estoqueLocal[key].codigo === codigo && estoqueLocal[key].qtd > 0) {
-                const status = getStatusValidade(estoqueLocal[key].validade);
+            let item = estoqueLocal[key];
+            let codigoReal = item.codigo || key;
+            
+            if (codigoReal === codigo && item.qtd > 0) {
+                const status = getStatusValidade(item.validade);
                 if (status.text !== 'VENCIDO') {
-                    lotesDisponiveis.push({ key: key, ...estoqueLocal[key] });
+                    lotesDisponiveis.push({ key: key, ...item });
                 }
             }
         }
@@ -732,8 +747,7 @@
             return;
         }
 
-        // Ordenar por validade (PEPS)
-        lotesDisponiveis.sort((a, b) => new Date(a.validade) - new Date(b.validade));
+        lotesDisponiveis.sort((a, b) => new Date(a.validade || 0) - new Date(b.validade || 0));
         abrirModalLotes(lotesDisponiveis);
         document.getElementById('codigoSaida').value = '';
         document.getElementById('produtoSelect').value = '';
@@ -741,18 +755,20 @@
 
     function abrirModalLotes(lotes) {
         lotesTemp = lotes;
-        document.getElementById('modalProdutoNome').innerHTML = `📦 ${lotes[0].nome}<br><small>Selecione o lote desejado:</small>`;
+        let nomeProduto = lotes[0].nome || 'Produto Antigo';
+        document.getElementById('modalProdutoNome').innerHTML = `📦 ${nomeProduto}<br><small>Selecione o lote desejado:</small>`;
         
         let html = '';
         lotes.forEach((lote, idx) => {
             const validadeStr = lote.validade ? new Date(lote.validade).toLocaleDateString('pt-BR') : 'Sem validade';
             const statusValidade = getStatusValidade(lote.validade);
             let statusText = statusValidade.class === 'expiring-soon' ? '⚠️ Vence em ' + statusValidade.text : '✅ Válido até ' + validadeStr;
+            let loteDisplay = lote.lote || 'Sem Lote';
             
             html += `
                 <div class="lote-option" id="optLote_${idx}" onclick="window.selecionarLoteUi(${idx})">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div><strong>Lote: ${lote.lote}</strong><br><small>Estoque: ${lote.qtd} un.</small></div>
+                        <div><strong>Lote: ${loteDisplay}</strong><br><small>Estoque: ${lote.qtd} un.</small></div>
                         <div><span class="badge ${statusValidade.class === 'expiring-soon' ? 'badge-warning' : 'badge-success'}">${statusText}</span></div>
                     </div>
                 </div>
@@ -814,10 +830,13 @@
             for (let key of keys) {
                 let item = carrinhoSaida[key];
                 totalUnidades += item.qtd;
-                const validadeStr = new Date(item.validade).toLocaleDateString('pt-BR');
+                let validadeStr = item.validade ? new Date(item.validade).toLocaleDateString('pt-BR') : '---';
+                let nomeStr = item.nome || 'Produto Antigo';
+                let loteStr = item.lote || 'Sem Lote';
+                
                 html += `<tr>
-                    <td><strong>${item.nome}</strong></td>
-                    <td><small>${item.lote}</small></td>
+                    <td><strong>${nomeStr}</strong></td>
+                    <td><small>${loteStr}</small></td>
                     <td><small>${validadeStr}</small></td>
                     <td style="text-align: center; font-size: 1.1em; font-weight: bold;">${item.qtd}</td>
                     <td style="text-align: center;">
@@ -846,7 +865,7 @@
                 let itemCart = carrinhoSaida[key];
                 
                 if (!estoqueLocal[key] || estoqueLocal[key].qtd < itemCart.qtd) {
-                    throw new Error(`Estoque de ${itemCart.nome} (Lote ${itemCart.lote}) insuficiente.`);
+                    throw new Error(`Estoque de ${itemCart.nome || 'produto'} insuficiente.`);
                 }
 
                 let novaQtd = estoqueLocal[key].qtd - itemCart.qtd;
@@ -856,9 +875,10 @@
                 });
                 
                 await addDoc(collection(db, "fluxo"), {
-                    tipo: "Saída", codigo: itemCart.codigo, nomeMaterial: itemCart.nome, lote: itemCart.lote,
-                    qtd: itemCart.qtd, responsavel: nomeServ, matricula: matServ, unidade: unidServ,
-                    operadorSistema: currentUser.email, dataHora: new Date().getTime()
+                    tipo: "Saída", codigo: itemCart.codigo || key, nomeMaterial: itemCart.nome || 'Produto Antigo', 
+                    lote: itemCart.lote || 'Sem Lote', qtd: itemCart.qtd, responsavel: nomeServ, 
+                    matricula: matServ, unidade: unidServ, operadorSistema: currentUser.email, 
+                    dataHora: new Date().getTime()
                 });
             }
             
@@ -889,19 +909,26 @@
         let encontrou = false;
         for (const key in estoqueLocal) {
             let item = estoqueLocal[key];
-            if (termo === '' || item.nome.toLowerCase().includes(termo) || item.codigo.includes(termo) || item.lote.toLowerCase().includes(termo)) {
+            
+            // PROTEÇÃO para exibir dados antigos sem erros
+            let codigoStr = item.codigo || key; 
+            let loteStr = item.lote || 'Sem Lote';
+            let nomeStr = item.nome || 'Item Desconhecido';
+            let descStr = item.descricao || '---';
+
+            if (termo === '' || nomeStr.toLowerCase().includes(termo) || codigoStr.includes(termo) || loteStr.toLowerCase().includes(termo)) {
                 encontrou = true;
                 const statusVal = getStatusValidade(item.validade);
                 const classeQtd = item.qtd <= 5 ? 'low-stock' : '';
                 const displayAcoes = isAdmin ? '' : 'display:none;';
                 
                 html += `<tr>
-                    <td><strong>${item.codigo}</strong></td>
-                    <td>${item.nome}</td>
-                    <td><small>${item.lote}</small></td>
+                    <td><strong>${codigoStr}</strong></td>
+                    <td>${nomeStr}</td>
+                    <td><small>${loteStr}</small></td>
                     <td><span class="${statusVal.class}">${statusVal.text}</span></td>
                     <td><span class="${classeQtd}">${item.qtd} un.</span></td>
-                    <td><small>${item.descricao || '---'}</small></td>
+                    <td><small>${descStr}</small></td>
                     <td style="color: var(--text-muted);"><small>${item.ultimoColaborador || '---'}</small></td>
                     <td class="col-acoes" style="${displayAcoes}">
                         <button class="btn-icon btn-edit" onclick="window.abrirEdicao('${key}')">✏️</button>
@@ -951,11 +978,11 @@
     window.abrirEdicao = function(key) {
         let item = estoqueLocal[key];
         document.getElementById('editId').value = key;
-        document.getElementById('editCodigo').value = item.codigo;
-        document.getElementById('editLote').value = item.lote;
-        document.getElementById('editNome').value = item.nome;
+        document.getElementById('editCodigo').value = item.codigo || key;
+        document.getElementById('editLote').value = item.lote || '';
+        document.getElementById('editNome').value = item.nome || '';
         document.getElementById('editDescricao').value = item.descricao || '';
-        document.getElementById('editValidade').value = item.validade;
+        document.getElementById('editValidade').value = item.validade || '';
         document.getElementById('editQtd').value = item.qtd;
         
         document.getElementById('areaPrincipalEstoque').style.display = 'none';
@@ -974,7 +1001,7 @@
         let nVal = document.getElementById('editValidade').value;
         let nQtd = parseInt(document.getElementById('editQtd').value);
 
-        if (!nNome || !nVal || isNaN(nQtd) || nQtd < 0) return alert("❌ Verifique Nome, Validade e Quantidade!");
+        if (!nNome || isNaN(nQtd) || nQtd < 0) return alert("❌ Verifique Nome e Quantidade!");
 
         mostrarLoading(true, "Salvando...");
         try { 
@@ -986,7 +1013,8 @@
     });
 
     window.excluirItem = async function(key) {
-        if(confirm(`⚠️ Vai excluir DEFINITIVAMENTE:\n${estoqueLocal[key].nome} (Lote: ${estoqueLocal[key].lote})\nContinuar?`)) {
+        let nomeItem = estoqueLocal[key].nome || 'Item Desconhecido';
+        if(confirm(`⚠️ Vai excluir DEFINITIVAMENTE:\n${nomeItem}\nContinuar?`)) {
             mostrarLoading(true, "Excluindo...");
             try { await deleteDoc(doc(db, "estoque", key)); alert("🗑️ Item apagado!"); } 
             catch (e) { alert("❌ Erro: " + e.message); }
@@ -1012,11 +1040,11 @@
                     
                     html += `<tr>
                         <td><small>${dataF}</small></td>
-                        <td><strong>${item.nomeMaterial}</strong><br><small>Cód: ${item.codigo}</small></td>
+                        <td><strong>${item.nomeMaterial || 'Produto'}</strong><br><small>Cód: ${item.codigo}</small></td>
                         <td>${item.lote || '---'}</td>
                         <td style="color: ${corTipo}; font-weight: bold;">${item.tipo}</td>
                         <td>${item.qtd}</td>
-                        <td>${item.responsavel}</td>
+                        <td>${item.responsavel || '---'}</td>
                         <td>${item.matricula || '---'} / ${item.unidade || '---'}</td>
                     </tr>`;
                 });
