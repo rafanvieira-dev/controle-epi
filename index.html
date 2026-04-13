@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de EPI e Materiais - DPGERJ</title>
+    <title>Controle de EPI e Materiais - DPGERJ (Com Lotes e Firebase)</title>
     <style>
         /* --- VARIÁVEIS INSTITUCIONAIS DPRJ --- */
         :root {
@@ -12,6 +12,9 @@
             --accent: #D4AF37;        /* Dourado DPRJ */
             --danger: #e74c3c;        /* Vermelho Alerta */
             --danger-dark: #c0392b;
+            --warning: #f39c12;
+            --info: #3498db;
+            --success: #27ae60;
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
             --text-main: #333333;
@@ -33,7 +36,7 @@
         .btn-logout { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-logout:hover { background: var(--danger); color: white; }
         
-        .app-header { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 0 0 0 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-bottom: 4px solid var(--accent); max-width: 1200px; margin: 0 auto; }
+        .app-header { text-align: center; background: var(--primary); color: white; padding: 20px; border-bottom: 4px solid var(--accent); max-width: 1200px; margin: 0 auto; }
         .app-header h1 { font-size: 1.5rem; margin-bottom: 5px; }
         .app-header p { font-size: 0.9rem; opacity: 0.9; }
 
@@ -54,8 +57,6 @@
             .layout-grid { flex-direction: row; align-items: flex-start; }
             .scanner-section { flex: 1; position: sticky; top: 20px; }
             .form-section { flex: 1.5; }
-            .app-header h1 { font-size: 1.8rem; }
-            .tab-btn { font-size: 1.1rem; padding: 15px; }
         }
 
         /* --- COMPONENTES --- */
@@ -64,58 +65,73 @@
         
         .form-group { margin-bottom: 20px; }
         label { font-weight: 600; color: var(--primary-dark); font-size: 0.95rem; display: block; margin-bottom: 8px; }
-        input, select { width: 100%; padding: 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; transition: border 0.3s; }
-        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 107, 51, 0.2); }
+        label.required:after { content: " *"; color: var(--danger); }
+        input, select, textarea { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; transition: border 0.3s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 107, 51, 0.2); }
+        textarea { resize: vertical; min-height: 80px; }
         
-        /* --- BOTÕES --- */
-        button.btn-action { width: 100%; padding: 16px; border-radius: 6px; border: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; color: white; text-transform: uppercase; }
-        .btn-saida { background-color: var(--danger); }
-        .btn-saida:hover { background-color: var(--danger-dark); }
-        .btn-entrada { background-color: var(--primary); }
-        .btn-entrada:hover { background-color: var(--primary-dark); }
-        .btn-add-carrinho { background-color: #3498db; width: auto; padding: 14px 20px; }
-        .btn-add-carrinho:hover { background-color: #2980b9; }
+        /* --- BOTOES --- */
+        .btn { padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-size: 1rem; color: white; text-transform: uppercase;}
+        .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-dark); }
+        .btn-danger { background: var(--danger); } .btn-danger:hover { background: var(--danger-dark); }
+        .btn-warning { background: var(--warning); } .btn-warning:hover { background: #e67e22; }
+        .btn-info { background: var(--info); }
+        .btn-block { width: 100%; }
         
-        .btn-fluxo { background-color: var(--accent); color: var(--text-main); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: none; }
-        .btn-fluxo:hover { filter: brightness(0.9); }
+        .btn-icon { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 0.8rem; margin-right: 5px; }
+        .btn-edit { background: var(--warning); } .btn-edit:hover { background: #d68910; }
+        .btn-delete { background: var(--danger); } .btn-delete:hover { background: var(--danger-dark); }
 
-        /* --- ÁREA DE LOGIN ADMIN --- */
-        .admin-lock { text-align: center; padding: 30px 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; }
-        .admin-lock h3 { color: var(--primary-dark); margin-bottom: 10px; }
-        .admin-lock p { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem; }
-        
+        /* --- INFO CARDS --- */
+        .info-card { background: #e8f5e9; border-left: 4px solid var(--primary); padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .info-card p { margin: 5px 0; font-size: 0.9rem; }
+        .row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
         /* --- TABELAS --- */
-        .table-header-controls { display: flex; flex-direction: column; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        @media (min-width: 768px) { .table-header-controls { flex-direction: row; } }
-
         .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; min-width: 100%; }
         th, td { border-bottom: 1px solid var(--border-color); padding: 12px; text-align: left; vertical-align: middle; }
         th { background-color: #f8f9fa; color: var(--primary); font-weight: bold; border-bottom: 2px solid var(--primary); }
         tr:hover { background-color: #f4f7f6; }
-        .low-stock { color: var(--danger); font-weight: bold; background: #fdeaea; padding: 4px 8px; border-radius: 4px; }
         
-        .btn-icon { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; font-size: 0.8rem; margin-right: 5px; }
-        .btn-edit { background: #f39c12; } .btn-edit:hover { background: #d68910; }
-        .btn-delete { background: var(--danger); } .btn-delete:hover { background: var(--danger-dark); }
-        .col-acoes { display: none; }
+        /* --- BADGES E STATUS --- */
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .low-stock { color: var(--danger); font-weight: bold; background: #fdeaea; padding: 4px 8px; border-radius: 4px; }
+        .expired { background: #f8d7da; color: #721c24; text-decoration: line-through; }
+        .expiring-soon { background: #fff3cd; color: #856404; }
+
+        /* --- MODAL DE LOTES --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 10px; padding: 25px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { font-size: 1.3rem; font-weight: bold; color: var(--primary); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); }
+        .lote-option { padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .lote-option:hover, .lote-option.selected { background: #e8f5e9; border-color: var(--primary); }
+        .lote-option.selected { border-width: 2px; }
+
+        /* --- ALERTAS --- */
+        .alert { padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .alert-danger { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .close-alert { cursor: pointer; font-size: 1.2rem; font-weight: bold; }
 
         /* --- LOADING --- */
         #loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 3000; text-align: center; padding-top: 30vh; font-size: 1.5rem; font-weight: bold; color: var(--primary); flex-direction: column; align-items: center; }
         .spinner { border: 6px solid #f3f3f3; border-top: 6px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- RODAPÉ --- */
-        .app-footer { text-align: center; padding: 25px 15px 15px 15px; margin-top: 40px; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color); max-width: 1200px; margin-left: auto; margin-right: auto; }
-        
-        .carrinho-total { background: #f8f9fa; padding: 10px; border-radius: 6px; font-weight: bold; text-align: right; color: var(--primary-dark); margin-bottom: 15px; border: 1px solid #ddd; }
+        .carrinho-total { background: #f8f9fa; padding: 15px; border-radius: 6px; font-weight: bold; text-align: right; color: var(--primary-dark); margin-bottom: 15px; border: 1px solid #ddd; }
+        .admin-lock { text-align: center; padding: 30px 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; }
     </style>
 </head>
 <body>
 
 <div id="loading">
     <div class="spinner"></div>
-    <span id="loadingText">A Processar...</span>
+    <span id="loadingText">Processando...</span>
 </div>
 
 <div id="loginSection">
@@ -123,8 +139,8 @@
         <div class="login-header">CONTROLE DE EPI E MATERIAIS</div>
         <h2 style="margin-bottom: 15px; color: var(--primary-dark);">Acesso ao Sistema</h2>
         <p style="margin-bottom: 25px; color: var(--text-muted); font-size: 0.95rem;">Faça login com a sua conta corporativa do Google para continuar.</p>
-        <button id="btnGoogle" class="btn-action" style="background-color: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <span style="font-size: 1.2rem; background: white; border-radius: 50%; padding: 2px 6px;">G</span> Entrar com Google
+        <button id="btnGoogle" class="btn btn-info btn-block" style="background-color: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <span style="font-size: 1.2rem; background: white; border-radius: 50%; padding: 2px 6px; color: #4285F4;">G</span> Entrar com Google
         </button>
         <p id="erroMsg" style="color: var(--danger); margin-top: 15px; font-weight: bold;"></p>
     </div>
@@ -133,18 +149,29 @@
 <div id="appMain">
     <div class="user-bar">
         <span id="nomeOperadorHeader" style="font-weight: bold; color: var(--primary-dark); font-size: 0.9rem;"></span>
-        <button class="btn-logout" onclick="fazerLogout()">Sair do Sistema</button>
+        <button class="btn-logout" id="btnSair">Sair do Sistema</button>
     </div>
 
     <header class="app-header">
         <h1>⚖️ Controle de EPI e Materiais</h1>
-        <p>Núcleo de Digitalização - NUDOF/DPGERJ</p>
+        <p>Núcleo de Digitalização - NUDOF/DPGERJ | Controle por Lotes e Validade</p>
     </header>
 
     <div class="tabs">
-        <button class="tab-btn active" id="tabBtnSaida" onclick="mudarAba('saida')">🛒 Ponto de Saída</button>
-        <button class="tab-btn" id="tabBtnEntrada" onclick="mudarAba('entrada')">📥 Repor Estoque</button>
-        <button class="tab-btn" id="tabBtnEstoque" onclick="mudarAba('estoque')">📦 Estoque Geral</button>
+        <button class="tab-btn active" id="tabBtnSaida">🛒 Ponto de Saída</button>
+        <button class="tab-btn" id="tabBtnEntrada">📥 Repor Estoque</button>
+        <button class="tab-btn" id="tabBtnEstoque">📦 Estoque Geral</button>
+    </div>
+
+    <div id="modalLotes" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalProdutoNome"></div>
+            <div id="lotesList"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" style="flex:1" id="btnConfirmarLote">✅ Confirmar</button>
+                <button class="btn btn-danger" style="flex:1" id="btnCancelarLote">❌ Cancelar</button>
+            </div>
+        </div>
     </div>
 
     <div id="abaSaida" class="container active">
@@ -152,37 +179,61 @@
             <div class="scanner-section card">
                 <h3 style="color: var(--primary-dark); margin-bottom: 15px;">📷 Leitor Contínuo</h3>
                 <div id="readerSaida" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">Aponte a câmara para ler o material. Ele será adicionado automaticamente ao carrinho.</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">Aponte a câmara para ler o código de barras.</p>
             </div>
 
             <div class="form-section card">
                 <h2 style="color: var(--danger); margin-bottom: 20px; border-bottom: 2px solid var(--danger); padding-bottom: 10px;">🛒 Carrinho de Retirada</h2>
                 
+                <div class="info-card">
+                    <p><strong>📋 Dados do Destinatário</strong></p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Preencha todos os campos obrigatórios (*)</p>
+                </div>
+
                 <div class="form-group">
-                    <label>Para quem é o material? (Destinatário único para o carrinho):</label>
-                    <input type="text" id="colaboradorSaida" placeholder="Ex: João da Silva">
+                    <label class="required">Nome do Servidor/Estagiário:</label>
+                    <input type="text" id="destinatarioNome" placeholder="Ex: João Carlos da Silva">
+                </div>
+
+                <div class="row-2col">
+                    <div class="form-group">
+                        <label class="required">Matrícula:</label>
+                        <input type="text" id="destinatarioMatricula" placeholder="Ex: 123456-7">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Unidade:</label>
+                        <input type="text" id="destinatarioUnidade" placeholder="Ex: NUDOF, NUMAV, etc.">
+                    </div>
                 </div>
                 
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Selecionar Produto (Manual):</label>
+                    <select id="produtoSelect">
+                        <option value="">-- Selecione um produto --</option>
+                    </select>
+                </div>
+
                 <div class="form-group" style="display: flex; gap: 10px; align-items: flex-end;">
                     <div style="flex: 1;">
-                        <label>Código do Produto (Bipar ou Digitar):</label>
-                        <input type="text" id="codigoSaida" placeholder="Ex: 7891234567890" onkeypress="if(event.key === 'Enter') adicionarAoCarrinho()">
+                        <label>Ou Digite/Bipar Código do Produto:</label>
+                        <input type="text" id="codigoSaida" placeholder="Ex: 7891234567890">
                     </div>
-                    <button class="btn-action btn-add-carrinho" onclick="adicionarAoCarrinho()">➕ Adicionar</button>
+                    <button class="btn btn-info" id="btnBuscarCodigo" style="width: auto;">🔍 Buscar</button>
                 </div>
 
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th>Cód</th>
-                                <th>Material / EPI</th>
+                                <th>Produto</th>
+                                <th>Lote</th>
+                                <th>Validade</th>
                                 <th style="text-align: center;">Qtd</th>
                                 <th style="text-align: center;">Ação</th>
                             </tr>
                         </thead>
                         <tbody id="corpoCarrinho">
-                            <tr><td colspan="4" style="text-align:center; color: #888;">O carrinho está vazio.</td></tr>
+                            <tr><td colspan="5" style="text-align:center; color: #888;">O carrinho está vazio.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -191,7 +242,7 @@
                     Total de Itens: 0
                 </div>
 
-                <button class="btn-action btn-saida" onclick="registrarSaidaCarrinho()">📤 Confirmar Saída do Carrinho</button>
+                <button class="btn btn-danger btn-block" id="btnRegistrarSaida">📤 Confirmar Saída</button>
             </div>
         </div>
     </div>
@@ -203,8 +254,7 @@
                 <div class="admin-lock">
                     <h3 style="font-size: 3rem; margin: 0;">🔒</h3>
                     <h3>Acesso Restrito</h3>
-                    <p>Apenas administradores podem adicionar novos materiais ou repor o estoque existente.</p>
-                    <p style="color:var(--danger); font-weight:bold; margin-top: 10px;">Sua conta atual não possui permissão de Admin.</p>
+                    <p>Apenas administradores podem adicionar novos materiais ou repor o estoque.</p>
                 </div>
             </div>
 
@@ -217,63 +267,86 @@
                 <div class="form-section card">
                     <h2 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">📥 Reposição de Estoque</h2>
                     
-                    <div class="form-group">
-                        <label>Código do Produto:</label>
-                        <input type="text" id="codigoEntrada" placeholder="Ex: 7891234567890">
+                    <div class="row-2col">
+                        <div class="form-group">
+                            <label class="required">Código do Produto:</label>
+                            <input type="text" id="codigoEntrada" placeholder="Ex: 7891234567890">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Número do Lote:</label>
+                            <input type="text" id="entradaLote" placeholder="Ex: LOT2024001">
+                        </div>
                     </div>
                     
                     <div class="form-group">
-                        <label>Nome do Material / EPI:</label>
-                        <select id="nomeEntradaSelect" onchange="verificarOutroNome()">
-                            <option value="">-- Selecione ou deixe em branco se for repor item já existente --</option>
-                            <option value="Luva de Látex (Tam P)">Luva de Látex (Tam P)</option>
-                            <option value="Luva de Látex (Tam M)">Luva de Látex (Tam M)</option>
-                            <option value="Luva de Látex (Tam G)">Luva de Látex (Tam G)</option>
-                            <option value="Capa de Chuva">Capa de Chuva</option>
-                            <option value="Máscara Descartável (Pacote)">Máscara Descartável (Pacote)</option>
+                        <label class="required">Nome do Material / EPI:</label>
+                        <select id="nomeEntradaSelect">
+                            <option value="">-- Selecione ou escolha 'Outro' --</option>
                             <option value="Máscara N95">Máscara N95</option>
+                            <option value="Luva de Látex (P)">Luva de Látex (P)</option>
+                            <option value="Luva de Látex (M)">Luva de Látex (M)</option>
+                            <option value="Luva de Látex (G)">Luva de Látex (G)</option>
+                            <option value="Álcool em Gel 500ml">Álcool em Gel 500ml</option>
                             <option value="Óculos de Proteção">Óculos de Proteção</option>
-                            <option value="Resma A4">Resma A4</option>
-                            <option value="OUTRO">Outro (Digitar nome do novo material...)</option>
+                            <option value="Capa de Chuva">Capa de Chuva</option>
+                            <option value="OUTRO">Outro (digitar nome)</option>
                         </select>
-                        <input type="text" id="nomeEntradaTexto" placeholder="Digite o nome do novo material" style="display:none; margin-top: 10px;">
+                        <input type="text" id="nomeEntradaTexto" placeholder="Digite o nome do material" style="display: none; margin-top: 10px;">
                     </div>
 
-                    <div class="form-group" style="display: flex; gap: 10px;">
-                        <div style="flex: 1;">
+                    <div class="form-group">
+                        <label>Descrição (Opcional):</label>
+                        <textarea id="entradaDescricao" placeholder="Especificações técnicas do produto..."></textarea>
+                    </div>
+
+                    <div class="row-2col">
+                        <div class="form-group">
+                            <label class="required">Data de Validade:</label>
+                            <input type="date" id="entradaValidade">
+                        </div>
+                        <div class="form-group">
                             <label>Formato:</label>
-                            <select id="formatoEntrada" onchange="verificarFormato()">
-                                <option value="unidade">Unidade(s)</option>
-                                <option value="caixa">Caixa(s) Fechada(s)</option>
+                            <select id="formatoEntrada">
+                                <option value="unidade">Unidades</option>
+                                <option value="caixa">Caixas Fechadas</option>
                             </select>
                         </div>
-                        <div style="flex: 1;">
-                            <label>Quantidade:</label>
+                    </div>
+
+                    <div class="row-2col">
+                        <div class="form-group">
+                            <label class="required">Quantidade:</label>
                             <input type="number" id="quantidadeEntrada" value="1" min="1">
                         </div>
-                        <div style="flex: 1; display: none;" id="divUnidadesCaixa">
-                            <label>Unidades por Caixa:</label>
+                        <div class="form-group" id="divUnidadesCaixa" style="display: none;">
+                            <label class="required">Unidades por Caixa:</label>
                             <input type="number" id="unidadesPorCaixa" value="10" min="1">
                         </div>
                     </div>
 
-                    <button class="btn-action btn-entrada" onclick="registrarEntrada()">📥 Adicionar ao Estoque</button>
+                    <button class="btn btn-primary btn-block" id="btnRegistrarEntrada">📥 Adicionar ao Estoque</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="abaEstoque" class="container">
-        
         <div class="card" id="areaPrincipalEstoque">
-            <div class="table-header-controls">
-                <button class="btn-fluxo" id="btnVerFluxo" onclick="toggleFluxo()">📜 Ver Fluxo de Materiais</button>
-                <span id="badgeAdminStatus" style="color: var(--primary); font-weight: bold; display: none; background: #eafaea; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--primary);">👑 Admin</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                <div>
+                    <button class="btn btn-warning" id="btnVerFluxo" style="display: none;">📜 Ver Histórico</button>
+                    <button class="btn btn-info" id="btnVerAlertas">⚠️ Alertas de Vencimento</button>
+                </div>
+                <span id="badgeAdminStatus" style="display: none; background: #e8f5e9; padding: 5px 15px; border-radius: 20px; color: var(--primary); font-weight: bold;">
+                    👑 Admin
+                </span>
             </div>
+
+            <div id="areaAlertas" style="margin-bottom: 20px; display: none;"></div>
 
             <div id="areaBusca" class="form-group" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
                 <label style="font-size: 1.1rem; color: var(--primary-dark);">🔍 Buscar Material no Estoque:</label>
-                <input type="text" id="buscaEstoque" placeholder="Digite o nome ou código do material..." onkeyup="filtrarEstoque()" style="background-color: #f8f9fa;">
+                <input type="text" id="buscaEstoque" placeholder="Digite o nome, código ou lote..." style="background-color: #f8f9fa;">
             </div>
 
             <div class="table-responsive" id="areaTabelaEstoque">
@@ -281,14 +354,17 @@
                     <thead>
                         <tr>
                             <th>Código</th>
-                            <th>Material / EPI</th>
-                            <th>Qtd. Atual</th>
-                            <th>Última Retirada Por</th>
-                            <th class="col-acoes">Ações do Admin</th>
+                            <th>Material</th>
+                            <th>Lote</th>
+                            <th>Validade</th>
+                            <th>Qtd</th>
+                            <th>Descrição</th>
+                            <th>Última Retirada</th>
+                            <th class="col-acoes">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="estoque-corpo">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
 
@@ -300,12 +376,15 @@
                             <tr>
                                 <th>Data e Hora</th>
                                 <th>Material</th>
-                                <th>Movimento</th>
-                                <th>Recebedor / Operador Sistema</th>
+                                <th>Lote</th>
+                                <th>Tipo</th>
+                                <th>Qtd</th>
+                                <th>Recebedor</th>
+                                <th>Matrícula / Unid.</th>
                             </tr>
                         </thead>
                         <tbody id="fluxo-corpo">
-                            <tr><td colspan="4" style="text-align:center;">A carregar histórico...</td></tr>
+                            <tr><td colspan="7" style="text-align:center;">A carregar histórico...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -313,35 +392,52 @@
         </div>
 
         <div class="form-section card" id="areaEdicaoEstoque" style="display: none; border: 2px solid var(--primary);">
-            <h2 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">✏️ Editar Material</h2>
+            <h2 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">✏️ Editar Material / Lote</h2>
             
             <input type="hidden" id="editId">
             
-            <div class="form-group">
-                <label>Código do Produto (Fixo):</label>
-                <input type="text" id="editCodigo" disabled style="background: #e9ecef; cursor: not-allowed; color: #666;">
+            <div class="row-2col">
+                <div class="form-group">
+                    <label>Código do Produto:</label>
+                    <input type="text" id="editCodigo" disabled style="background: #e9ecef; cursor: not-allowed; color: #666;">
+                </div>
+                <div class="form-group">
+                    <label>Lote:</label>
+                    <input type="text" id="editLote" disabled style="background: #e9ecef; cursor: not-allowed; color: #666;">
+                </div>
             </div>
             
             <div class="form-group">
                 <label>Nome do Material / EPI:</label>
-                <input type="text" id="editNome" placeholder="Ex: Luva de Látex">
+                <input type="text" id="editNome">
             </div>
 
             <div class="form-group">
-                <label>Quantidade em Estoque:</label>
-                <input type="number" id="editQtd" min="0">
+                <label>Descrição:</label>
+                <textarea id="editDescricao"></textarea>
+            </div>
+
+            <div class="row-2col">
+                <div class="form-group">
+                    <label>Data de Validade:</label>
+                    <input type="date" id="editValidade">
+                </div>
+                <div class="form-group">
+                    <label>Quantidade em Estoque:</label>
+                    <input type="number" id="editQtd" min="0">
+                </div>
             </div>
 
             <div style="display: flex; gap: 15px; margin-top: 20px;">
-                <button class="btn-action btn-entrada" style="flex: 2;" onclick="salvarEdicao()">💾 Salvar Alterações</button>
-                <button class="btn-action btn-saida" style="flex: 1;" onclick="cancelarEdicao()">❌ Cancelar</button>
+                <button class="btn btn-primary" style="flex: 2;" id="btnSalvarEdicao">💾 Salvar Alterações</button>
+                <button class="btn btn-danger" style="flex: 1;" id="btnCancelarEdicao">❌ Cancelar</button>
             </div>
         </div>
 
     </div>
 
-    <div class="app-footer">
-        Desenvolvido por Rafael do N. Vieira e Gemini
+    <div class="app-footer" style="text-align: center; padding: 25px; margin-top: 20px; color: var(--text-muted); font-size: 0.9rem;">
+        Desenvolvido para DPGERJ - NUDOF | Controle de EPIs com Lotes
     </div>
 
 </div>
@@ -357,7 +453,7 @@
         "gabriel.monteiro@defensoria.rj.def.br",
         "rafaela.panema@defensoria.rj.def.br",
         "alex.silva@defensoria.rj.def.br",
-        "rafael.nascimento-vieira@defensoria.rj.def.br",
+        "rafael.nascimento-vieira@defensoria.rj.def.br"
     ];
 
     const firebaseConfig = {
@@ -380,11 +476,31 @@
     let fluxoCarregado = false;
     let abaAtual = 'saida';
     let leitorCamera = null;
-    
-    // Variável para o Carrinho
     let carrinhoSaida = {};
+    
+    // Variáveis temporárias para o Modal de Lotes
+    let lotesTemp = [];
+    let loteSelecionadoIndex = undefined;
 
-    // --- AUTENTICAÇÃO E CONTROLO DE ACESSOS ---
+    // --- UTILITÁRIOS ---
+    function mostrarLoading(mostrar, texto = "Processando...") { 
+        document.getElementById('loadingText').innerText = texto;
+        document.getElementById('loading').style.display = mostrar ? 'flex' : 'none'; 
+    }
+
+    function getStatusValidade(validade) {
+        if (!validade) return { class: '', text: '---' };
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const dataValidade = new Date(validade);
+        
+        if (dataValidade < hoje) return { class: 'expired', text: 'VENCIDO' };
+        const diffDias = Math.ceil((dataValidade - hoje) / (1000 * 60 * 60 * 24));
+        if (diffDias <= 30) return { class: 'expiring-soon', text: `${diffDias} dias` };
+        return { class: '', text: dataValidade.toLocaleDateString('pt-BR') };
+    }
+
+    // --- AUTENTICAÇÃO ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
@@ -405,17 +521,17 @@
         mostrarLoading(false);
     });
 
-    document.getElementById("btnGoogle").onclick = () => {
-        mostrarLoading(true, "A autenticar...");
+    document.getElementById("btnGoogle").addEventListener('click', () => {
+        mostrarLoading(true, "Autenticando...");
         signInWithPopup(auth, provider).catch((error) => {
             document.getElementById("erroMsg").innerText = "Erro ao autenticar: " + error.message;
             mostrarLoading(false);
         });
-    };
+    });
 
-    window.fazerLogout = () => {
+    document.getElementById("btnSair").addEventListener('click', () => {
         if(confirm("Deseja realmente sair do sistema?")) signOut(auth);
-    };
+    });
 
     function aplicarPermissoes() {
         if (isAdmin) {
@@ -438,8 +554,12 @@
         mudarAba('saida');
     }
 
-    // --- GESTÃO DE ABAS E CÂMARA ---
-    window.mudarAba = function(abaId) {
+    // --- NAVEGAÇÃO E CÂMERA ---
+    document.getElementById('tabBtnSaida').addEventListener('click', () => mudarAba('saida'));
+    document.getElementById('tabBtnEntrada').addEventListener('click', () => mudarAba('entrada'));
+    document.getElementById('tabBtnEstoque').addEventListener('click', () => mudarAba('estoque'));
+
+    function mudarAba(abaId) {
         abaAtual = abaId;
         document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -451,14 +571,13 @@
         } else if (abaId === 'entrada') {
             document.getElementById('abaEntrada').classList.add('active');
             document.getElementById('tabBtnEntrada').classList.add('active');
-            if (isAdmin) iniciarCamera("readerEntrada"); 
-            else pararCamera();
+            if (isAdmin) iniciarCamera("readerEntrada"); else pararCamera();
         } else if (abaId === 'estoque') {
             document.getElementById('abaEstoque').classList.add('active');
             document.getElementById('tabBtnEstoque').classList.add('active');
             pararCamera(); 
         }
-    };
+    }
 
     function iniciarCamera(divId) {
         pararCamera(); 
@@ -472,7 +591,8 @@
 
     function onScanSuccess(decodedText) {
         if (abaAtual === 'saida') {
-            adicionarAoCarrinho(decodedText);
+            document.getElementById('codigoSaida').value = decodedText;
+            buscarProdutoParaSaida(decodedText);
         }
         if (abaAtual === 'entrada') {
             document.getElementById('codigoEntrada').value = decodedText;
@@ -480,90 +600,206 @@
         if (navigator.vibrate) navigator.vibrate(200); 
     }
 
-    // --- RENDERIZAR HISTÓRICO ---
-    function iniciarLeituraFluxo() {
-        onSnapshot(collection(db, "fluxo"), (snapshot) => {
-            let lista = [];
-            snapshot.forEach(doc => lista.push(doc.data()));
-            lista.sort((a,b) => b.dataHora - a.dataHora);
+    // --- SINCRONIZAÇÃO DE ESTOQUE (FIREBASE -> LOCAL) ---
+    onSnapshot(collection(db, "estoque"), (snapshot) => {
+        estoqueLocal = {};
+        if (!snapshot.empty) {
+            snapshot.forEach((doc) => {
+                estoqueLocal[doc.id] = doc.data();
+            });
+        }
+        renderizarTabelaEstoque();
+        atualizarSelectProdutosSaida();
+    });
+
+    // --- LÓGICA DE ENTRADA ---
+    document.getElementById('nomeEntradaSelect').addEventListener('change', function() {
+        document.getElementById('nomeEntradaTexto').style.display = this.value === 'OUTRO' ? 'block' : 'none';
+    });
+
+    document.getElementById('formatoEntrada').addEventListener('change', function() {
+        document.getElementById('divUnidadesCaixa').style.display = this.value === 'caixa' ? 'block' : 'none';
+    });
+
+    document.getElementById('btnRegistrarEntrada').addEventListener('click', async () => {
+        let codigo = document.getElementById('codigoEntrada').value.trim();
+        let lote = document.getElementById('entradaLote').value.trim();
+        let validade = document.getElementById('entradaValidade').value;
+        let selectValue = document.getElementById('nomeEntradaSelect').value;
+        let nome = selectValue === 'OUTRO' ? document.getElementById('nomeEntradaTexto').value.trim() : selectValue;
+        let descricao = document.getElementById('entradaDescricao').value.trim();
+        let formato = document.getElementById('formatoEntrada').value;
+        let qtdDigitada = parseInt(document.getElementById('quantidadeEntrada').value);
+        let qtdTotal = qtdDigitada;
+
+        if (!codigo || !lote || !validade || !nome) return alert('⚠️ Preencha todos os campos obrigatórios (Código, Lote, Nome, Validade)!');
+        if (qtdDigitada <= 0 || isNaN(qtdDigitada)) return alert('⚠️ Quantidade inválida!');
+
+        if (formato === 'caixa') {
+            let undCaixa = parseInt(document.getElementById('unidadesPorCaixa').value);
+            if (isNaN(undCaixa) || undCaixa <= 0) return alert('⚠️ Informe as unidades por caixa!');
+            qtdTotal = qtdDigitada * undCaixa;
+        }
+
+        mostrarLoading(true, "A gravar entrada...");
+        try {
+            // Chave Primária agora é Codigo_Lote
+            const docKey = `${codigo}_${lote}`;
+            const docRef = doc(db, "estoque", docKey); 
+            const docSnap = await getDoc(docRef); 
             
-            let html = '';
-            if(lista.length === 0) {
-                html = '<tr><td colspan="4" style="text-align:center;">Ainda não existem movimentações.</td></tr>';
+            if (docSnap.exists()) {
+                await updateDoc(docRef, { qtd: docSnap.data().qtd + qtdTotal });
+                alert(`📥 Adicionadas ${qtdTotal} unidades ao lote existente "${lote}" de "${docSnap.data().nome}".`);
             } else {
-                lista.forEach(item => {
-                    let d = new Date(item.dataHora);
-                    let dataFormatada = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR');
-                    let corQtd = item.tipo === 'Saída' ? 'var(--danger)' : 'var(--primary)';
-                    let sinal = item.tipo === 'Saída' ? '-' : '+';
-                    let quem = item.tipo === 'Saída' ? `<b>Recebeu:</b> ${item.colaborador}<br><small><b>Op:</b> ${item.operadorSistema}</small>` : `<b>Op:</b> ${item.operadorSistema}`;
-                    
-                    html += `<tr>
-                        <td><small style="color:var(--text-muted);">${dataFormatada}</small></td>
-                        <td><strong>${item.nomeMaterial}</strong><br><small>Cód: ${item.codigo}</small></td>
-                        <td style="color: ${corQtd}; font-weight: bold; font-size:1.1em;">${sinal}${item.qtd}</td>
-                        <td>${quem}</td>
-                    </tr>`;
+                await setDoc(docRef, { 
+                    codigo: codigo, lote: lote, nome: nome, validade: validade, 
+                    descricao: descricao, qtd: qtdTotal, ultimoColaborador: '' 
                 });
+                alert(`📥 Novo lote (${lote}) de ${nome} cadastrado com ${qtdTotal} unidades!`);
             }
-            document.getElementById('fluxo-corpo').innerHTML = html;
-        });
+            
+            await addDoc(collection(db, "fluxo"), {
+                tipo: "Entrada", codigo: codigo, nomeMaterial: nome, lote: lote, qtd: qtdTotal,
+                responsavel: "Reposição", matricula: "SISTEMA", unidade: "ADMIN",
+                operadorSistema: currentUser.email, dataHora: new Date().getTime()
+            });
+            
+            // Reset form
+            document.getElementById('codigoEntrada').value = ''; 
+            document.getElementById('entradaLote').value = '';
+            document.getElementById('nomeEntradaSelect').value = '';
+            document.getElementById('nomeEntradaTexto').value = '';
+            document.getElementById('nomeEntradaTexto').style.display = 'none';
+            document.getElementById('entradaDescricao').value = '';
+            document.getElementById('entradaValidade').value = '';
+            document.getElementById('quantidadeEntrada').value = '1';
+            
+        } catch (e) { alert("❌ Erro: " + e.message); }
+        mostrarLoading(false);
+    });
+
+    // --- LÓGICA DE SAÍDA E CARRINHO ---
+    function atualizarSelectProdutosSaida() {
+        const select = document.getElementById('produtoSelect');
+        const produtosUnicos = new Map();
+        
+        for (let key in estoqueLocal) {
+            const item = estoqueLocal[key];
+            if (!produtosUnicos.has(item.codigo)) {
+                produtosUnicos.set(item.codigo, { codigo: item.codigo, nome: item.nome, qtdTotal: 0 });
+            }
+            produtosUnicos.get(item.codigo).qtdTotal += item.qtd;
+        }
+        
+        let html = '<option value="">-- Selecione um produto --</option>';
+        for (let [codigo, produto] of produtosUnicos) {
+            if (produto.qtdTotal > 0) html += `<option value="${codigo}">${produto.nome} (${produto.qtdTotal} un.)</option>`;
+        }
+        select.innerHTML = html;
     }
 
-    window.toggleFluxo = function() {
-        let area = document.getElementById('areaFluxo');
-        if (area.style.display === 'none' || area.style.display === '') {
-            area.style.display = 'block'; document.getElementById('btnVerFluxo').innerText = "⬆️ Ocultar Fluxo de Materiais"; area.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            area.style.display = 'none'; document.getElementById('btnVerFluxo').innerText = "📜 Ver Fluxo de Materiais";
-        }
-    };
+    document.getElementById('produtoSelect').addEventListener('change', function() {
+        if(this.value) buscarProdutoParaSaida(this.value);
+    });
 
-    // ==================== LÓGICA DO CARRINHO (SAÍDA) ====================
+    document.getElementById('codigoSaida').addEventListener('keypress', function(e) {
+        if(e.key === 'Enter') buscarProdutoParaSaida(this.value);
+    });
     
-    window.adicionarAoCarrinho = function(codigoLido) {
-        let codigo = codigoLido || document.getElementById('codigoSaida').value.trim();
+    document.getElementById('btnBuscarCodigo').addEventListener('click', () => {
+        buscarProdutoParaSaida(document.getElementById('codigoSaida').value);
+    });
+
+    function buscarProdutoParaSaida(codigoBusca) {
+        let codigo = codigoBusca.trim();
         if (!codigo) return;
+
+        const lotesDisponiveis = [];
+        for (let key in estoqueLocal) {
+            if (estoqueLocal[key].codigo === codigo && estoqueLocal[key].qtd > 0) {
+                const status = getStatusValidade(estoqueLocal[key].validade);
+                if (status.text !== 'VENCIDO') {
+                    lotesDisponiveis.push({ key: key, ...estoqueLocal[key] });
+                }
+            }
+        }
+
+        if (lotesDisponiveis.length === 0) {
+            alert(`❌ Produto com código ${codigo} não encontrado ou todos os lotes estão vencidos/zerados!`);
+            document.getElementById('codigoSaida').value = '';
+            document.getElementById('produtoSelect').value = '';
+            return;
+        }
+
+        // Ordenar por validade (PEPS)
+        lotesDisponiveis.sort((a, b) => new Date(a.validade) - new Date(b.validade));
+        abrirModalLotes(lotesDisponiveis);
+        document.getElementById('codigoSaida').value = '';
+        document.getElementById('produtoSelect').value = '';
+    }
+
+    function abrirModalLotes(lotes) {
+        lotesTemp = lotes;
+        document.getElementById('modalProdutoNome').innerHTML = `📦 ${lotes[0].nome}<br><small>Selecione o lote desejado:</small>`;
         
-        if (!estoqueLocal[codigo]) {
-            alert('❌ Material não encontrado no estoque!');
-            document.getElementById('codigoSaida').value = '';
-            return;
-        }
+        let html = '';
+        lotes.forEach((lote, idx) => {
+            const validadeStr = lote.validade ? new Date(lote.validade).toLocaleDateString('pt-BR') : 'Sem validade';
+            const statusValidade = getStatusValidade(lote.validade);
+            let statusText = statusValidade.class === 'expiring-soon' ? '⚠️ Vence em ' + statusValidade.text : '✅ Válido até ' + validadeStr;
+            
+            html += `
+                <div class="lote-option" id="optLote_${idx}" onclick="window.selecionarLoteUi(${idx})">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div><strong>Lote: ${lote.lote}</strong><br><small>Estoque: ${lote.qtd} un.</small></div>
+                        <div><span class="badge ${statusValidade.class === 'expiring-soon' ? 'badge-warning' : 'badge-success'}">${statusText}</span></div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        document.getElementById('lotesList').innerHTML = html;
+        document.getElementById('modalLotes').style.display = 'flex';
+    }
 
-        let itemEstoque = estoqueLocal[codigo];
-        let qtdNoCarrinho = carrinhoSaida[codigo] ? carrinhoSaida[codigo].qtd : 0;
-
-        // Verifica se tem estoque suficiente para adicionar mais um no carrinho
-        if (itemEstoque.qtd <= qtdNoCarrinho) {
-            alert(`❌ Estoque insuficiente! Só existem ${itemEstoque.qtd} unidades de "${itemEstoque.nome}" disponíveis.`);
-            document.getElementById('codigoSaida').value = '';
-            return;
-        }
-
-        if (carrinhoSaida[codigo]) {
-            carrinhoSaida[codigo].qtd++;
-        } else {
-            carrinhoSaida[codigo] = { nome: itemEstoque.nome, qtd: 1 };
-        }
-
-        document.getElementById('codigoSaida').value = ''; // Limpa para o próximo bip
-        document.getElementById('codigoSaida').focus(); // Mantém o cursor no campo
-        atualizarTelaCarrinho();
+    window.selecionarLoteUi = function(idx) {
+        document.querySelectorAll('.lote-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById(`optLote_${idx}`).classList.add('selected');
+        loteSelecionadoIndex = idx;
     };
 
-    window.removerItemCarrinho = function(codigo) {
-        if (carrinhoSaida[codigo]) {
-            carrinhoSaida[codigo].qtd--;
-            if (carrinhoSaida[codigo].qtd <= 0) {
-                delete carrinhoSaida[codigo];
-            }
+    document.getElementById('btnCancelarLote').addEventListener('click', () => {
+        document.getElementById('modalLotes').style.display = 'none';
+        loteSelecionadoIndex = undefined;
+    });
+
+    document.getElementById('btnConfirmarLote').addEventListener('click', () => {
+        if (loteSelecionadoIndex === undefined) return alert("⚠️ Selecione um lote!");
+        const loteSelecionado = lotesTemp[loteSelecionadoIndex];
+        
+        if (carrinhoSaida[loteSelecionado.key]) {
+            if(carrinhoSaida[loteSelecionado.key].qtd >= loteSelecionado.qtd) return alert("❌ Estoque deste lote atingiu o limite no carrinho!");
+            carrinhoSaida[loteSelecionado.key].qtd++;
+        } else {
+            carrinhoSaida[loteSelecionado.key] = { ...loteSelecionado, qtd: 1 };
+        }
+        
+        document.getElementById('modalLotes').style.display = 'none';
+        loteSelecionadoIndex = undefined;
+        atualizarTelaCarrinho();
+    });
+
+    window.removerItemCarrinho = function(key) {
+        if (carrinhoSaida[key]) {
+            carrinhoSaida[key].qtd--;
+            if (carrinhoSaida[key].qtd <= 0) delete carrinhoSaida[key];
             atualizarTelaCarrinho();
         }
     };
 
-    window.removerTudoCarrinho = function(codigo) {
-        delete carrinhoSaida[codigo];
+    window.removerTudoCarrinho = function(key) {
+        delete carrinhoSaida[key];
         atualizarTelaCarrinho();
     }
 
@@ -573,267 +809,231 @@
         let keys = Object.keys(carrinhoSaida);
 
         if (keys.length === 0) {
-            html = '<tr><td colspan="4" style="text-align:center; color: #888;">O carrinho está vazio.</td></tr>';
+            html = '<tr><td colspan="5" style="text-align:center; color: #888;">O carrinho está vazio.</td></tr>';
         } else {
-            for (let cod of keys) {
-                let item = carrinhoSaida[cod];
+            for (let key of keys) {
+                let item = carrinhoSaida[key];
                 totalUnidades += item.qtd;
+                const validadeStr = new Date(item.validade).toLocaleDateString('pt-BR');
                 html += `<tr>
-                    <td><small>${cod}</small></td>
                     <td><strong>${item.nome}</strong></td>
-                    <td style="text-align: center; font-size: 1.2em; font-weight: bold;">${item.qtd}</td>
+                    <td><small>${item.lote}</small></td>
+                    <td><small>${validadeStr}</small></td>
+                    <td style="text-align: center; font-size: 1.1em; font-weight: bold;">${item.qtd}</td>
                     <td style="text-align: center;">
-                        <button class="btn-icon btn-edit" onclick="removerItemCarrinho('${cod}')" title="Remover 1">-1</button>
-                        <button class="btn-icon btn-delete" onclick="removerTudoCarrinho('${cod}')" title="Remover Todos">Excluir</button>
+                        <button class="btn-icon btn-edit" onclick="removerItemCarrinho('${key}')">-1</button>
+                        <button class="btn-icon btn-delete" onclick="removerTudoCarrinho('${key}')">Del</button>
                     </td>
                 </tr>`;
             }
         }
-        
         document.getElementById('corpoCarrinho').innerHTML = html;
         document.getElementById('totalItensCarrinho').innerText = `Total de Unidades no Carrinho: ${totalUnidades}`;
     }
 
-    window.registrarSaidaCarrinho = async function() {
-        let colaborador = document.getElementById('colaboradorSaida').value.trim();
+    document.getElementById('btnRegistrarSaida').addEventListener('click', async () => {
+        let nomeServ = document.getElementById('destinatarioNome').value.trim();
+        let matServ = document.getElementById('destinatarioMatricula').value.trim();
+        let unidServ = document.getElementById('destinatarioUnidade').value.trim();
         let keys = Object.keys(carrinhoSaida);
 
-        if (!colaborador) return alert('⚠️ Informe quem está recebendo os materiais!');
-        if (keys.length === 0) return alert('⚠️ O carrinho está vazio! Bipe ou adicione algum material.');
+        if (!nomeServ || !matServ || !unidServ) return alert('⚠️ Preencha Nome, Matrícula e Unidade do destinatário!');
+        if (keys.length === 0) return alert('⚠️ O carrinho está vazio!');
 
-        mostrarLoading(true, "A gravar saídas...");
+        mostrarLoading(true, "Gravando saídas...");
         try {
-            // Processa cada item do carrinho
-            for (let cod of keys) {
-                let itemCart = carrinhoSaida[cod];
+            for (let key of keys) {
+                let itemCart = carrinhoSaida[key];
                 
-                // Redundância de segurança na hora de salvar
-                if (!estoqueLocal[cod] || estoqueLocal[cod].qtd < itemCart.qtd) {
-                    throw new Error(`Estoque de ${itemCart.nome} ficou insuficiente antes de salvar.`);
+                if (!estoqueLocal[key] || estoqueLocal[key].qtd < itemCart.qtd) {
+                    throw new Error(`Estoque de ${itemCart.nome} (Lote ${itemCart.lote}) insuficiente.`);
                 }
 
-                let novaQtd = estoqueLocal[cod].qtd - itemCart.qtd;
+                let novaQtd = estoqueLocal[key].qtd - itemCart.qtd;
+                await updateDoc(doc(db, "estoque", key), { 
+                    qtd: novaQtd, 
+                    ultimoColaborador: `${nomeServ} (${matServ})` 
+                });
                 
-                // Atualiza o estoque
-                await updateDoc(doc(db, "estoque", cod), { qtd: novaQtd, ultimoColaborador: colaborador });
-                
-                // Registra no fluxo
                 await addDoc(collection(db, "fluxo"), {
-                    tipo: "Saída", codigo: cod, nomeMaterial: itemCart.nome, qtd: itemCart.qtd,
-                    colaborador: colaborador, operadorSistema: currentUser.email, dataHora: new Date().getTime()
+                    tipo: "Saída", codigo: itemCart.codigo, nomeMaterial: itemCart.nome, lote: itemCart.lote,
+                    qtd: itemCart.qtd, responsavel: nomeServ, matricula: matServ, unidade: unidServ,
+                    operadorSistema: currentUser.email, dataHora: new Date().getTime()
                 });
             }
             
             alert(`📤 Retirada concluída com sucesso!`);
-            
-            // Limpa o carrinho e a tela
             carrinhoSaida = {};
-            document.getElementById('colaboradorSaida').value = '';
+            document.getElementById('destinatarioNome').value = '';
+            document.getElementById('destinatarioMatricula').value = '';
+            document.getElementById('destinatarioUnidade').value = '';
             atualizarTelaCarrinho();
             
-        } catch (e) { 
-            alert("❌ Erro ao finalizar saída: " + e.message); 
-        }
+        } catch (e) { alert("❌ Erro ao finalizar saída: " + e.message); }
         mostrarLoading(false);
-    };
+    });
 
-    // ==================== LÓGICA DE ENTRADA (CAIXAS E DROPDOWN) ====================
-
-    window.verificarOutroNome = function() {
-        let select = document.getElementById('nomeEntradaSelect').value;
-        document.getElementById('nomeEntradaTexto').style.display = select === 'OUTRO' ? 'block' : 'none';
-    };
-
-    window.verificarFormato = function() {
-        let formato = document.getElementById('formatoEntrada').value;
-        document.getElementById('divUnidadesCaixa').style.display = formato === 'caixa' ? 'block' : 'none';
-    };
-
-    window.registrarEntrada = async function() {
-        let codigo = document.getElementById('codigoEntrada').value.trim();
-        
-        // Define o nome escolhido
-        let selectValue = document.getElementById('nomeEntradaSelect').value;
-        let nome = selectValue === 'OUTRO' ? document.getElementById('nomeEntradaTexto').value.trim() : selectValue;
-        
-        // Cálculos de Quantidade e Caixas
-        let formato = document.getElementById('formatoEntrada').value;
-        let qtdDigitada = parseInt(document.getElementById('quantidadeEntrada').value);
-        let qtdTotalCalculada = qtdDigitada;
-
-        if (!codigo) return alert('⚠️ Leia o código do material!');
-        if (qtdDigitada <= 0 || isNaN(qtdDigitada)) return alert('⚠️ Quantidade inválida!');
-
-        if (formato === 'caixa') {
-            let undCaixa = parseInt(document.getElementById('unidadesPorCaixa').value);
-            if (isNaN(undCaixa) || undCaixa <= 0) return alert('⚠️ Informe quantas unidades vêm na caixa!');
-            qtdTotalCalculada = qtdDigitada * undCaixa;
-        }
-
-        mostrarLoading(true, "A gravar entrada...");
-        try {
-            const docRef = doc(db, "estoque", codigo); 
-            const docSnap = await getDoc(docRef); 
-            let nomeFinalDoProduto = nome;
-            
-            if (docSnap.exists()) {
-                // Se o produto já existe, a prioridade é o nome que já está no banco de dados
-                nomeFinalDoProduto = docSnap.data().nome; 
-                await updateDoc(docRef, { qtd: docSnap.data().qtd + qtdTotalCalculada });
-                alert(`📥 Sucesso! Adicionadas ${qtdTotalCalculada} unidades ao estoque existente de "${nomeFinalDoProduto}".`);
-            } else {
-                // Se o produto é novo, exige o preenchimento do nome
-                if (!nome) { 
-                    mostrarLoading(false); 
-                    return alert('⚠️ Material NOVO detetado. Selecione ou digite o Nome do Material!'); 
-                }
-                nomeFinalDoProduto = nome;
-                await setDoc(docRef, { nome: nomeFinalDoProduto, qtd: qtdTotalCalculada, ultimoColaborador: '' });
-                alert(`📥 Novo material (${nomeFinalDoProduto}) cadastrado com ${qtdTotalCalculada} unidades!`);
-            }
-            
-            // Grava no histórico o fluxo de entrada
-            await addDoc(collection(db, "fluxo"), {
-                tipo: "Entrada", codigo: codigo, nomeMaterial: nomeFinalDoProduto, qtd: qtdTotalCalculada,
-                colaborador: "Reposição de Estoque", operadorSistema: currentUser.email, dataHora: new Date().getTime()
-            });
-            
-            // Limpar formulário de entrada
-            document.getElementById('codigoEntrada').value = ''; 
-            document.getElementById('nomeEntradaSelect').value = '';
-            document.getElementById('nomeEntradaTexto').value = '';
-            document.getElementById('nomeEntradaTexto').style.display = 'none';
-            document.getElementById('quantidadeEntrada').value = '1';
-            document.getElementById('formatoEntrada').value = 'unidade';
-            document.getElementById('divUnidadesCaixa').style.display = 'none';
-            
-        } catch (e) { alert("❌ Erro: " + e.message); }
-        mostrarLoading(false);
-    };
-
-    // ==================== LÓGICA DE BUSCA E RENDERIZAÇÃO DE ESTOQUE ====================
-    window.filtrarEstoque = function() {
-        renderizarTabelaEstoque();
-    };
+    // --- LÓGICA DE ESTOQUE, ALERTAS E EDIÇÃO ---
+    document.getElementById('buscaEstoque').addEventListener('keyup', renderizarTabelaEstoque);
 
     function renderizarTabelaEstoque() {
         const tbody = document.getElementById('estoque-corpo');
-        const termoBusca = document.getElementById('buscaEstoque').value.toLowerCase().trim();
+        const termo = document.getElementById('buscaEstoque').value.toLowerCase().trim();
         let html = '';
         
-        // Verifica se não existem itens registados de todo
         if (Object.keys(estoqueLocal).length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum material cadastrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum material cadastrado.</td></tr>';
             return;
         }
 
         let encontrou = false;
-        for (const id in estoqueLocal) {
-            let item = estoqueLocal[id];
-            
-            // Se a busca estiver vazia, mostra todos. Se não, filtra pelo texto.
-            if (termoBusca === '' || item.nome.toLowerCase().includes(termoBusca) || id.toLowerCase().includes(termoBusca)) {
+        for (const key in estoqueLocal) {
+            let item = estoqueLocal[key];
+            if (termo === '' || item.nome.toLowerCase().includes(termo) || item.codigo.includes(termo) || item.lote.toLowerCase().includes(termo)) {
                 encontrou = true;
-                let classeAlerta = item.qtd <= 5 ? 'low-stock' : '';
-                let mostrarAdminTd = isAdmin ? 'display: table-cell;' : 'display: none;';
-                let mostrarAdminBtn = isAdmin ? 'display: inline-block;' : 'display: none;';
+                const statusVal = getStatusValidade(item.validade);
+                const classeQtd = item.qtd <= 5 ? 'low-stock' : '';
+                const displayAcoes = isAdmin ? '' : 'display:none;';
                 
-                // CORREÇÃO: Envolvendo o conteúdo em uma div com flexbox, mantendo a tag td intacta
                 html += `<tr>
-                    <td><strong>${id}</strong></td>
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            ${item.nome}
-                            <button class="btn-icon btn-edit" style="${mostrarAdminBtn} padding: 4px 8px; font-size: 0.7rem; margin: 0;" onclick="abrirTelaEdicao('${id}')" title="Abrir formulário de edição">
-                                ✏️ Editar
-                            </button>
-                        </div>
-                    </td>
-                    <td><span class="${classeAlerta}">${item.qtd} un.</span></td>
-                    <td style="color: var(--text-muted);">${item.ultimoColaborador || '---'}</td>
-                    <td class="col-acoes" style="${mostrarAdminTd}">
-                        <button class="btn-icon btn-delete" onclick="excluirItem('${id}')">🗑️ Del</button>
+                    <td><strong>${item.codigo}</strong></td>
+                    <td>${item.nome}</td>
+                    <td><small>${item.lote}</small></td>
+                    <td><span class="${statusVal.class}">${statusVal.text}</span></td>
+                    <td><span class="${classeQtd}">${item.qtd} un.</span></td>
+                    <td><small>${item.descricao || '---'}</small></td>
+                    <td style="color: var(--text-muted);"><small>${item.ultimoColaborador || '---'}</small></td>
+                    <td class="col-acoes" style="${displayAcoes}">
+                        <button class="btn-icon btn-edit" onclick="window.abrirEdicao('${key}')">✏️</button>
+                        <button class="btn-icon btn-delete" onclick="window.excluirItem('${key}')">🗑️</button>
                     </td>
                 </tr>`;
             }
         }
 
-        if (!encontrou) {
-            html = '<tr><td colspan="5" style="text-align:center; color: var(--danger); padding: 20px; font-weight: bold;">Nenhum material encontrado com este termo.</td></tr>';
-        }
-
+        if (!encontrou) html = '<tr><td colspan="8" style="text-align:center; color: var(--danger);">Nenhum material encontrado.</td></tr>';
         tbody.innerHTML = html;
     }
 
-    // Escuta o banco de dados e alimenta a lista local
-    onSnapshot(collection(db, "estoque"), (snapshot) => {
-        estoqueLocal = {};
-        if (!snapshot.empty) {
-            snapshot.forEach((doc) => {
-                estoqueLocal[doc.id] = doc.data();
-            });
+    document.getElementById('btnVerAlertas').addEventListener('click', () => {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        let vencidos = [], proximos = [];
+        
+        for (let key in estoqueLocal) {
+            let item = estoqueLocal[key];
+            if (item.validade && item.qtd > 0) {
+                let dVal = new Date(item.validade);
+                if (dVal < hoje) vencidos.push(item);
+                else {
+                    let diffDias = Math.ceil((dVal - hoje) / (1000 * 60 * 60 * 24));
+                    if (diffDias <= 30) proximos.push({ ...item, dias: diffDias });
+                }
+            }
         }
-        renderizarTabelaEstoque(); // Atualiza a tela baseada no que está digitado na busca
+        
+        const area = document.getElementById('areaAlertas');
+        if (vencidos.length === 0 && proximos.length === 0) {
+            area.innerHTML = `<div class="alert alert-info">✅ Nenhum produto vencido ou próximo ao vencimento.<span class="close-alert" onclick="this.parentElement.style.display='none'">×</span></div>`;
+        } else {
+            let html = '';
+            if (vencidos.length > 0) {
+                html += `<div class="alert alert-danger"><div><strong>⚠️ PRODUTOS VENCIDOS!</strong><br>${vencidos.map(v => `• ${v.nome} (Lote: ${v.lote}) - ${v.qtd} un.`).join('<br>')}</div><span class="close-alert" onclick="this.parentElement.style.display='none'">×</span></div>`;
+            }
+            if (proximos.length > 0) {
+                html += `<div class="alert alert-warning"><div><strong>⚠️ PRODUTOS PRÓXIMOS AO VENCIMENTO (30 DIAS)!</strong><br>${proximos.map(v => `• ${v.nome} (Lote: ${v.lote}) - ${v.qtd} un. - vence em ${v.dias} dias`).join('<br>')}</div><span class="close-alert" onclick="this.parentElement.style.display='none'">×</span></div>`;
+            }
+            area.innerHTML = html;
+        }
+        area.style.display = 'block';
     });
 
-
-    // ==================== LÓGICA DE EDIÇÃO (NOVA TELA) E EXCLUSÃO ====================
-    window.abrirTelaEdicao = function(id) {
-        let item = estoqueLocal[id];
-        
-        // Preenche os campos da nova tela
-        document.getElementById('editId').value = id;
-        document.getElementById('editCodigo').value = id;
+    window.abrirEdicao = function(key) {
+        let item = estoqueLocal[key];
+        document.getElementById('editId').value = key;
+        document.getElementById('editCodigo').value = item.codigo;
+        document.getElementById('editLote').value = item.lote;
         document.getElementById('editNome').value = item.nome;
+        document.getElementById('editDescricao').value = item.descricao || '';
+        document.getElementById('editValidade').value = item.validade;
         document.getElementById('editQtd').value = item.qtd;
         
-        // Oculta a área de busca/tabela e mostra o formulário de edição
         document.getElementById('areaPrincipalEstoque').style.display = 'none';
         document.getElementById('areaEdicaoEstoque').style.display = 'block';
     };
 
-    window.cancelarEdicao = function() {
-        // Limpa os dados e volta para a tela inicial do Estoque
-        document.getElementById('editNome').value = '';
-        document.getElementById('editQtd').value = '';
+    document.getElementById('btnCancelarEdicao').addEventListener('click', () => {
         document.getElementById('areaEdicaoEstoque').style.display = 'none';
         document.getElementById('areaPrincipalEstoque').style.display = 'block';
-        document.getElementById('buscaEstoque').value = ''; // Limpa o termo buscado
-        renderizarTabelaEstoque(); // Atualiza a tabela com o ecrã limpo
-    };
+    });
 
-    window.salvarEdicao = async function() {
-        let id = document.getElementById('editId').value;
-        let novoNome = document.getElementById('editNome').value.trim();
-        let novaQtd = parseInt(document.getElementById('editQtd').value);
+    document.getElementById('btnSalvarEdicao').addEventListener('click', async () => {
+        let key = document.getElementById('editId').value;
+        let nNome = document.getElementById('editNome').value.trim();
+        let nDesc = document.getElementById('editDescricao').value.trim();
+        let nVal = document.getElementById('editValidade').value;
+        let nQtd = parseInt(document.getElementById('editQtd').value);
 
-        if (!novoNome) return alert("❌ O nome do material não pode ficar vazio.");
-        if (isNaN(novaQtd) || novaQtd < 0) return alert("❌ Quantidade inválida. Digite 0 ou um número maior.");
+        if (!nNome || !nVal || isNaN(nQtd) || nQtd < 0) return alert("❌ Verifique Nome, Validade e Quantidade!");
 
-        mostrarLoading(true, "A salvar alterações...");
+        mostrarLoading(true, "Salvando...");
         try { 
-            await updateDoc(doc(db, "estoque", id), { nome: novoNome, qtd: novaQtd }); 
-            cancelarEdicao(); // Retorna automaticamente para a aba inicial
+            await updateDoc(doc(db, "estoque", key), { nome: nNome, descricao: nDesc, validade: nVal, qtd: nQtd }); 
+            document.getElementById('btnCancelarEdicao').click();
             alert("✅ Atualizado com sucesso!");
-        } catch (e) { 
-            alert("❌ Erro ao atualizar no Firebase: " + e.message); 
-        }
+        } catch (e) { alert("❌ Erro: " + e.message); }
         mostrarLoading(false);
-    };
+    });
 
-    window.excluirItem = async function(id) {
-        if(confirm(`⚠️ ATENÇÃO!\nVai excluir DEFINITIVAMENTE o item:\n${estoqueLocal[id].nome}\nContinuar?`)) {
-            mostrarLoading(true, "A excluir...");
-            try { await deleteDoc(doc(db, "estoque", id)); alert("🗑️ Item apagado!"); } 
+    window.excluirItem = async function(key) {
+        if(confirm(`⚠️ Vai excluir DEFINITIVAMENTE:\n${estoqueLocal[key].nome} (Lote: ${estoqueLocal[key].lote})\nContinuar?`)) {
+            mostrarLoading(true, "Excluindo...");
+            try { await deleteDoc(doc(db, "estoque", key)); alert("🗑️ Item apagado!"); } 
             catch (e) { alert("❌ Erro: " + e.message); }
             mostrarLoading(false);
         }
     };
 
-    function mostrarLoading(mostrar, texto = "A Processar...") { 
-        document.getElementById('loadingText').innerText = texto;
-        document.getElementById('loading').style.display = mostrar ? 'flex' : 'none'; 
+    // --- FLUXO DE MATERIAIS ---
+    function iniciarLeituraFluxo() {
+        onSnapshot(collection(db, "fluxo"), (snapshot) => {
+            let lista = [];
+            snapshot.forEach(doc => lista.push(doc.data()));
+            lista.sort((a,b) => b.dataHora - a.dataHora);
+            
+            let html = '';
+            if(lista.length === 0) {
+                html = '<tr><td colspan="7" style="text-align:center;">Sem movimentações.</td></tr>';
+            } else {
+                lista.forEach(item => {
+                    let d = new Date(item.dataHora);
+                    let dataF = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR');
+                    let corTipo = item.tipo === 'Saída' ? 'var(--danger)' : 'var(--primary)';
+                    
+                    html += `<tr>
+                        <td><small>${dataF}</small></td>
+                        <td><strong>${item.nomeMaterial}</strong><br><small>Cód: ${item.codigo}</small></td>
+                        <td>${item.lote || '---'}</td>
+                        <td style="color: ${corTipo}; font-weight: bold;">${item.tipo}</td>
+                        <td>${item.qtd}</td>
+                        <td>${item.responsavel}</td>
+                        <td>${item.matricula || '---'} / ${item.unidade || '---'}</td>
+                    </tr>`;
+                });
+            }
+            document.getElementById('fluxo-corpo').innerHTML = html;
+        });
     }
+
+    document.getElementById('btnVerFluxo').addEventListener('click', function() {
+        let area = document.getElementById('areaFluxo');
+        if (area.style.display === 'none') {
+            area.style.display = 'block'; this.innerText = "⬆️ Ocultar Histórico";
+        } else {
+            area.style.display = 'none'; this.innerText = "📜 Ver Histórico";
+        }
+    });
+
 </script>
 </body>
 </html>
