@@ -449,13 +449,6 @@
     import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    const ADMIN_EMAILS = [
-        "gabriel.monteiro@defensoria.rj.def.br",
-        "rafaela.panema@defensoria.rj.def.br",
-        "alex.silva@defensoria.rj.def.br",
-        "rafael.nascimento-vieira@defensoria.rj.def.br"
-    ];
-
     const firebaseConfig = {
         apiKey: "AIzaSyBGdrHQfc5wqXHm4MQfrVtj57FxONy1iGs",
         authDomain: "controle-epi-nudof.firebaseapp.com",
@@ -518,10 +511,18 @@
     }
 
     // --- AUTENTICAÇÃO ---
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
-            isAdmin = ADMIN_EMAILS.includes(user.email);
+            
+            // Verifica no Firestore se o usuário logado está na coleção 'admins'
+            try {
+                const adminDoc = await getDoc(doc(db, "admins", user.email));
+                isAdmin = adminDoc.exists();
+            } catch (error) {
+                console.error("Erro ao verificar permissões de admin:", error);
+                isAdmin = false;
+            }
             
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('appMain').style.display = 'block';
