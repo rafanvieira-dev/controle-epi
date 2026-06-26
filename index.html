@@ -36,13 +36,45 @@
         .btn-logout { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-logout:hover { background: var(--danger); color: white; }
         
-        .app-header { text-align: center; background: var(--primary); color: white; padding: 20px; border-bottom: 4px solid var(--accent); max-width: 1200px; margin: 0 auto; }
-        .app-header h1 { font-size: 1.5rem; margin-bottom: 5px; }
-        .app-header p { font-size: 0.9rem; opacity: 0.9; }
+        .app-header { 
+            text-align: center; 
+            background: var(--primary); 
+            color: white; 
+            padding: 15px 20px; 
+            border-bottom: 4px solid var(--accent); 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .app-header .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .app-header .logo-container img {
+            height: 50px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+        .app-header .header-text {
+            text-align: left;
+        }
+        .app-header .header-text h1 { 
+            font-size: 1.4rem; 
+            margin-bottom: 2px; 
+        }
+        .app-header .header-text p { 
+            font-size: 0.8rem; 
+            opacity: 0.9; 
+        }
 
         /* --- ABAS PRINCIPAIS --- */
-        .tabs { display: flex; max-width: 1200px; margin: 0 auto 20px auto; background: var(--card-bg); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 0 0 8px 8px; overflow: hidden; }
-        .tab-btn { flex: 1; padding: 15px 5px; border: none; background: transparent; font-size: 0.95rem; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: all 0.3s; border-bottom: 3px solid transparent; }
+        .tabs { display: flex; max-width: 1200px; margin: 0 auto 20px auto; background: var(--card-bg); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 0 0 8px 8px; overflow: hidden; flex-wrap: wrap; }
+        .tab-btn { flex: 1; padding: 15px 5px; border: none; background: transparent; font-size: 0.95rem; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: all 0.3s; border-bottom: 3px solid transparent; min-width: 120px; }
         .tab-btn:hover { background: #f0f0f0; color: var(--primary); }
         .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #eafaea; }
 
@@ -72,7 +104,7 @@
         textarea { resize: vertical; min-height: 80px; }
         
         /* --- BOTÕES DE VISÃO --- */
-        .toggle-view-container { display: flex; gap: 10px; margin-bottom: 15px; background: #eef2f5; padding: 10px; border-radius: 6px; align-items: center; }
+        .toggle-view-container { display: flex; gap: 10px; margin-bottom: 15px; background: #eef2f5; padding: 10px; border-radius: 6px; align-items: center; flex-wrap: wrap; }
         .btn-toggle { padding: 6px 12px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-muted); }
         .btn-toggle.active { background: var(--primary); color: white; border-color: var(--primary); }
 
@@ -93,6 +125,7 @@
         .info-card p { margin: 5px 0; font-size: 0.9rem; }
         .row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .row-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .row-4col { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; }
 
         /* --- TABELAS --- */
         .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; }
@@ -112,6 +145,13 @@
         .badge-warning { background: #fff3cd; color: #856404; }
         .badge-danger { background: #f8d7da; color: #721c24; }
         .low-stock { color: var(--danger); font-weight: bold; background: #fdeaea; padding: 4px 8px; border-radius: 4px; }
+        .low-stock-blink {
+            animation: blink 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes blink {
+            0% { background-color: #fdeaea; color: var(--danger); }
+            100% { background-color: var(--danger); color: white; }
+        }
         .expired { background: #f8d7da; color: #721c24; text-decoration: line-through; }
         .expiring-soon { background: #fff3cd; color: #856404; }
 
@@ -127,6 +167,7 @@
         .alert { padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
         .alert-danger { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
         .close-alert { cursor: pointer; font-size: 1.2rem; font-weight: bold; }
 
         /* --- LOADING --- */
@@ -138,6 +179,41 @@
         .admin-lock { text-align: center; padding: 30px 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; }
         
         .checkbox-container { display: inline-flex; align-items: center; gap: 6px; font-weight: normal; margin-top: 6px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* --- ALERTA DE ESTOQUE BAIXO FLUTUANTE --- */
+        .floating-alert {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--danger);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 999;
+            animation: pulse 1.5s ease-in-out infinite;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+        .floating-alert:hover {
+            transform: scale(1.05);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .floating-alert .badge-count {
+            background: white;
+            color: var(--danger);
+            border-radius: 50%;
+            padding: 2px 10px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -166,8 +242,13 @@
     </div>
 
     <header class="app-header">
-        <h1>⚖️ Controle de EPI e Materiais</h1>
-        <p>Núcleo de Digitalização - NUDOF/DPGERJ | Controle Avançado com CA e Inteligência de Estoque</p>
+        <div class="logo-container">
+            <img src="https://firebasestorage.googleapis.com/v0/b/pauta-ce162.firebasestorage.app/o/logo_defensoria%20(1)%20(1).png?alt=media&token=7a4eeaf6-9a96-40b2-8b38-27651627bba7" alt="Logo Defensoria Pública">
+            <div class="header-text">
+                <h1>⚖️ Controle de EPI e Materiais</h1>
+                <p>Núcleo de Digitalização - NUDOF/DPGERJ | Controle Avançado com CA e Inteligência de Estoque</p>
+            </div>
+        </div>
     </header>
 
     <div class="tabs">
@@ -175,6 +256,11 @@
         <button class="tab-btn" id="tabBtnEntrada">📥 Repor Estoque</button>
         <button class="tab-btn" id="tabBtnEstoque">📦 Estoque Geral</button>
         <button class="tab-btn" id="tabBtnDashboard" style="display: none;">📊 Dashboard (Admin)</button>
+    </div>
+
+    <!-- ALERTA FLUTUANTE DE ESTOQUE BAIXO -->
+    <div class="floating-alert" id="floatingAlert" onclick="document.getElementById('tabBtnEstoque').click();">
+        ⚠️ Estoque Baixo <span class="badge-count" id="alertCount">0</span>
     </div>
 
     <div id="modalLotes" class="modal">
@@ -239,6 +325,7 @@
                         <thead>
                             <tr>
                                 <th>Produto</th>
+                                <th>Marca</th>
                                 <th>CA</th>
                                 <th>Lote</th>
                                 <th>Validade</th>
@@ -247,7 +334,7 @@
                             </tr>
                         </thead>
                         <tbody id="corpoCarrinho">
-                            <tr><td colspan="6" style="text-align:center; color: #888;">O carrinho está vazio.</td></tr>
+                            <tr><td colspan="7" style="text-align:center; color: #888;">O carrinho está vazio.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -280,7 +367,7 @@
                 <div class="form-section card">
                     <h2 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">📥 Reposição de Estoque</h2>
                     
-                    <div class="row-3col">
+                    <div class="row-4col">
                         <div class="form-group">
                             <label>Código do Produto:</label>
                             <input type="text" id="codigoEntrada" placeholder="Bipe ou digite o código">
@@ -300,6 +387,13 @@
                             <input type="text" id="entradaCA" placeholder="Digite o CA">
                             <label class="checkbox-container">
                                 <input type="checkbox" id="checkSemCA"> Não possui CA
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>Marca do Produto:</label>
+                            <input type="text" id="entradaMarca" placeholder="Digite a marca">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="checkSemMarca"> Não possui marca
                             </label>
                         </div>
                     </div>
@@ -401,6 +495,7 @@
                         <tr>
                             <th class="sortable" data-sort="codigo">Código <span class="seta">↕</span></th>
                             <th class="sortable active" data-sort="nome">Material / EPI <span class="seta">🔼</span></th>
+                            <th class="sortable" data-sort="marca">Marca <span class="seta">↕</span></th>
                             <th class="sortable" data-sort="ca">CA <span class="seta">↕</span></th>
                             <th class="sortable" data-sort="lote">Lote <span class="seta">↕</span></th>
                             <th class="sortable" data-sort="validade">Validade <span class="seta">↕</span></th>
@@ -423,6 +518,7 @@
                             <tr>
                                 <th>Data e Hora</th>
                                 <th>Material / EPI</th>
+                                <th>Marca</th>
                                 <th>CA</th>
                                 <th>Lote</th>
                                 <th>Tipo</th>
@@ -432,7 +528,7 @@
                             </tr>
                         </thead>
                         <tbody id="fluxo-corpo">
-                            <tr><td colspan="8" style="text-align:center;">Carregando histórico...</td></tr>
+                            <tr><td colspan="9" style="text-align:center;">Carregando histórico...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -442,7 +538,7 @@
         <div class="form-section card" id="areaEdicaoEstoque" style="display: none; border: 2px solid var(--primary); margin-top: 20px;">
             <h2 style="color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">✏️ Editar Registro do Estoque</h2>
             <input type="hidden" id="editId">
-            <div class="row-3col">
+            <div class="row-4col">
                 <div class="form-group">
                     <label>Código do Produto:</label>
                     <input type="text" id="editCodigo">
@@ -462,6 +558,13 @@
                     <input type="text" id="editCA">
                     <label class="checkbox-container">
                         <input type="checkbox" id="checkEditSemCA"> Não possui CA
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Marca:</label>
+                    <input type="text" id="editMarca" placeholder="Digite a marca">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="checkEditSemMarca"> Não possui marca
                     </label>
                 </div>
             </div>
@@ -668,11 +771,13 @@
     configurarToggleCheckbox('checkSemCodigo', 'codigoEntrada');
     configurarToggleCheckbox('checkSemLote', 'entradaLote');
     configurarToggleCheckbox('checkSemCA', 'entradaCA');
+    configurarToggleCheckbox('checkSemMarca', 'entradaMarca');
     
     // Edição
     configurarToggleCheckbox('checkEditSemCodigo', 'editCodigo');
     configurarToggleCheckbox('checkEditSemLote', 'editLote');
     configurarToggleCheckbox('checkEditSemCA', 'editCA');
+    configurarToggleCheckbox('checkEditSemMarca', 'editMarca');
 
     // Validade
     document.getElementById('checkboxSemValidade').addEventListener('change', function() {
@@ -742,6 +847,7 @@
             });
             atualizarListasDeNomes();
             renderizarTabelaEstoque();
+            verificarEstoqueBaixo();
             if(abaAtual === 'dashboard') calcularDashboard();
         });
     }
@@ -758,6 +864,64 @@
         });
     }
 
+    // --- VERIFICAÇÃO DE ESTOQUE BAIXO ---
+    function verificarEstoqueBaixo() {
+        let alertas = [];
+        let itensBaixos = [];
+        
+        // Agrupa por nome para ver estoque consolidado
+        let agrupado = {};
+        for (let key in estoqueLocal) {
+            let item = estoqueLocal[key];
+            let nome = item.nome || 'Sem Nome';
+            if (!agrupado[nome]) {
+                agrupado[nome] = { nome: nome, qtd: 0, detalhes: [] };
+            }
+            agrupado[nome].qtd += item.qtd;
+            agrupado[nome].detalhes.push(item);
+        }
+
+        for (let nome in agrupado) {
+            let grupo = agrupado[nome];
+            // Alerta se estoque total <= 5 unidades
+            if (grupo.qtd <= 5 && grupo.qtd > 0) {
+                alertas.push({ nome: nome, qtd: grupo.qtd, nivel: 'baixo' });
+                itensBaixos.push(nome);
+            }
+            // Alerta crítico se estoque = 0
+            if (grupo.qtd === 0) {
+                alertas.push({ nome: nome, qtd: 0, nivel: 'zerado' });
+            }
+        }
+
+        // Atualiza o alerta flutuante
+        let floatingAlert = document.getElementById('floatingAlert');
+        let countBadge = document.getElementById('alertCount');
+        if (itensBaixos.length > 0) {
+            floatingAlert.style.display = 'flex';
+            countBadge.textContent = itensBaixos.length;
+            // Destaca os itens na tabela
+            destacarItensBaixos(itensBaixos);
+        } else {
+            floatingAlert.style.display = 'none';
+        }
+    }
+
+    function destacarItensBaixos(itensBaixos) {
+        // Adiciona classe low-stock-blink aos itens na tabela
+        document.querySelectorAll('#estoque-corpo tr').forEach(row => {
+            let nomeCelula = row.querySelector('td:nth-child(2)');
+            if (nomeCelula) {
+                let nome = nomeCelula.textContent.trim();
+                if (itensBaixos.includes(nome)) {
+                    row.querySelector('td:nth-child(7)').classList.add('low-stock-blink');
+                } else {
+                    row.querySelector('td:nth-child(7)').classList.remove('low-stock-blink');
+                }
+            }
+        });
+    }
+
     // --- PROCESSAMENTO DA TABELA DO ESTOQUE ---
     function renderizarTabelaEstoque() {
         let termo = document.getElementById('buscaEstoque').value.toLowerCase().trim();
@@ -771,7 +935,8 @@
                     (item.nome && item.nome.toLowerCase().includes(termo)) ||
                     (item.codigo && item.codigo.toLowerCase().includes(termo)) ||
                     (item.lote && item.lote.toLowerCase().includes(termo)) ||
-                    (item.ca && item.ca.toLowerCase().includes(termo));
+                    (item.ca && item.ca.toLowerCase().includes(termo)) ||
+                    (item.marca && item.marca.toLowerCase().includes(termo));
                 if (match) listagem.push(item);
             }
         } else {
@@ -785,6 +950,7 @@
                         key: 'group_' + nome,
                         nome: nome,
                         codigo: item.codigo || 'Sem código',
+                        marcas: new Set(),
                         lotes: new Set(),
                         cas: new Set(),
                         qtd: 0,
@@ -794,6 +960,7 @@
                         isGroup: true
                     };
                 }
+                if (item.marca && item.marca !== 'Sem marca') agrupado[nome].marcas.add(item.marca);
                 if (item.lote && item.lote !== 'Sem lote') agrupado[nome].lotes.add(item.lote);
                 if (item.ca && item.ca !== 'Sem CA') agrupado[nome].cas.add(item.ca);
                 agrupado[nome].qtd += item.qtd;
@@ -802,6 +969,7 @@
 
             for (let nome in agrupado) {
                 let itemG = agrupado[nome];
+                itemG.marca = Array.from(itemG.marcas).join(', ') || 'Sem marca';
                 itemG.lote = Array.from(itemG.lotes).join(', ') || 'Sem lote';
                 itemG.ca = Array.from(itemG.cas).join(', ') || 'Sem CA';
                 
@@ -812,7 +980,8 @@
                     itemG.nome.toLowerCase().includes(termo) ||
                     itemG.codigo.toLowerCase().includes(termo) ||
                     itemG.lote.toLowerCase().includes(termo) ||
-                    itemG.ca.toLowerCase().includes(termo);
+                    itemG.ca.toLowerCase().includes(termo) ||
+                    itemG.marca.toLowerCase().includes(termo);
                 if (match) listagem.push(itemG);
             }
         }
@@ -850,7 +1019,7 @@
         // Renderização do HTML
         let html = '';
         if (listagem.length === 0) {
-            html = `<tr><td colspan="9" style="text-align:center;">Nenhum item localizado.</td></tr>`;
+            html = `<tr><td colspan="10" style="text-align:center;">Nenhum item localizado.</td></tr>`;
         } else {
             listagem.forEach(item => {
                 let statusVal = getStatusValidade(item.validade);
@@ -860,6 +1029,7 @@
                 html += `<tr>
                     <td><strong>${item.codigo || 'Sem código'}</strong></td>
                     <td>${item.nome}</td>
+                    <td>${item.marca || 'Sem marca'}</td>
                     <td><span class="badge" style="background:#eaf2f8;color:#2980b9;">${item.ca || 'Sem CA'}</span></td>
                     <td><small>${item.lote || 'Sem lote'}</small></td>
                     <td><span class="${statusVal.class}">${statusVal.text}</span></td>
@@ -913,10 +1083,10 @@
     });
 
     document.getElementById('btnRegistrarEntrada').addEventListener('click', async () => {
-        // Usando o checkbox para determinar se ignora o input
         let codigo = document.getElementById('checkSemCodigo').checked ? "Sem código" : (document.getElementById('codigoEntrada').value.trim() || "Sem código");
         let lote = document.getElementById('checkSemLote').checked ? "Sem lote" : (document.getElementById('entradaLote').value.trim() || "Sem lote");
         let ca = document.getElementById('checkSemCA').checked ? "Sem CA" : (document.getElementById('entradaCA').value.trim() || "Sem CA");
+        let marca = document.getElementById('checkSemMarca').checked ? "Sem marca" : (document.getElementById('entradaMarca').value.trim() || "Sem marca");
         
         let sValue = document.getElementById('nomeEntradaSelect').value;
         let nome = sValue === 'OUTRO' ? document.getElementById('nomeEntradaTexto').value.trim() : sValue;
@@ -939,7 +1109,6 @@
 
         mostrarLoading(true, "Gravando entrada...");
         try {
-            // Chave baseada em Código + Lote + CA para evitar colisões
             const docKey = `${codigo.replace(/\s+/g, '_')}_${lote.replace(/\s+/g, '_')}_${ca.replace(/\s+/g, '_')}`;
             const docRef = doc(db, "estoque", docKey);
             const snap = await getDoc(docRef);
@@ -948,19 +1117,19 @@
                 await updateDoc(docRef, { qtd: snap.data().qtd + qtdTotal });
             } else {
                 await setDoc(docRef, {
-                    codigo: codigo, lote: lote, ca: ca, nome: nome,
-                    validade: validade, dataCompra: dataCompra,
+                    codigo: codigo, lote: lote, ca: ca, marca: marca,
+                    nome: nome, validade: validade, dataCompra: dataCompra,
                     descricao: descricao, qtd: qtdTotal, ultimoColaborador: ''
                 });
             }
 
             await addDoc(collection(db, "fluxo"), {
-                tipo: "Entrada", codigo: codigo, nomeMaterial: nome, lote: lote, ca: ca,
+                tipo: "Entrada", codigo: codigo, nomeMaterial: nome, 
+                marca: marca, lote: lote, ca: ca,
                 qtd: qtdTotal, responsavel: "Reposição", matricula: "SISTEMA",
                 unidade: "ADMIN", operadorSistema: currentUser.email, dataHora: new Date().getTime()
             });
 
-            // Salva a nova categoria permanentemente se solicitado
             if (sValue === 'OUTRO' && document.getElementById('checkSalvarCategoria').checked) {
                 try {
                     await setDoc(doc(db, "categorias", nome), { adicionadoEm: new Date().getTime() });
@@ -972,10 +1141,12 @@
             document.getElementById('checkSemCodigo').checked = false; document.getElementById('codigoEntrada').disabled = false;
             document.getElementById('checkSemLote').checked = false; document.getElementById('entradaLote').disabled = false;
             document.getElementById('checkSemCA').checked = false; document.getElementById('entradaCA').disabled = false;
+            document.getElementById('checkSemMarca').checked = false; document.getElementById('entradaMarca').disabled = false;
             
             document.getElementById('codigoEntrada').value = '';
             document.getElementById('entradaLote').value = '';
             document.getElementById('entradaCA').value = '';
+            document.getElementById('entradaMarca').value = '';
             document.getElementById('nomeEntradaSelect').value = '';
             document.getElementById('nomeEntradaTexto').value = '';
             document.getElementById('nomeEntradaTexto').style.display = 'none';
@@ -1034,7 +1205,6 @@
             document.getElementById('produtoSelect').value = '';
             return;
         }
-        // Ordena por FEFO (Vencimento mais próximo primeiro)
         lotes.sort((a,b) => {
             if (a.validade === 'Sem Validade') return 1;
             if (b.validade === 'Sem Validade') return -1;
@@ -1050,7 +1220,7 @@
         lotes.forEach((l, idx) => {
             let st = getStatusValidade(l.validade);
             html += `<div class="lote-option" id="optLote_${idx}" onclick="window.selecionarLoteUi(${idx})">
-                <strong>Lote: ${l.lote || 'Sem lote'}</strong> | CA: ${l.ca || 'Sem CA'}<br>
+                <strong>Lote: ${l.lote || 'Sem lote'}</strong> | CA: ${l.ca || 'Sem CA'} | Marca: ${l.marca || 'Sem marca'}<br>
                 <small>Estoque: ${l.qtd} un. | Status: ${st.text}</small>
             </div>`;
         });
@@ -1096,6 +1266,7 @@
             totalUn += item.qtdCarrinho;
             html += `<tr>
                 <td><strong>${item.nome}</strong></td>
+                <td>${item.marca || 'Sem marca'}</td>
                 <td><span class="badge" style="background:#eaf2f8;color:#2980b9;">${item.ca || 'Sem CA'}</span></td>
                 <td><small>${item.lote || 'Sem lote'}</small></td>
                 <td><small>${item.validade === 'Sem Validade' ? 'Sem Validade' : new Date(item.validade).toLocaleDateString('pt-BR')}</small></td>
@@ -1106,7 +1277,7 @@
                 </td>
             </tr>`;
         }
-        if(html === '') html = '<tr><td colspan="6" style="text-align:center; color:#888;">O carrinho está vazio.</td></tr>';
+        if(html === '') html = '<tr><td colspan="7" style="text-align:center; color:#888;">O carrinho está vazio.</td></tr>';
         document.getElementById('corpoCarrinho').innerHTML = html;
         document.getElementById('totalItensCarrinho').innerText = `Total de Unidades no Carrinho: ${totalUn}`;
     }
@@ -1148,6 +1319,7 @@
 
                 await addDoc(collection(db, "fluxo"), {
                     tipo: "Saída", codigo: itemCart.codigo, nomeMaterial: itemCart.nome,
+                    marca: itemCart.marca || 'Sem marca',
                     lote: itemCart.lote, ca: itemCart.ca || 'Sem CA', qtd: itemCart.qtdCarrinho,
                     responsavel: nomeServ, matricula: matServ, unidade: unidServ,
                     operadorSistema: currentUser.email, dataHora: new Date().getTime()
@@ -1170,7 +1342,7 @@
     function renderizarHistoricoFluxo() {
         let html = '';
         if(fluxoGeral.length === 0) {
-            html = '<tr><td colspan="8" style="text-align:center;">Sem movimentações registradas.</td></tr>';
+            html = '<tr><td colspan="9" style="text-align:center;">Sem movimentações registradas.</td></tr>';
         } else {
             fluxoGeral.forEach(item => {
                 let dataF = new Date(item.dataHora).toLocaleString('pt-BR');
@@ -1178,6 +1350,7 @@
                 html += `<tr>
                     <td><small>${dataF}</small></td>
                     <td><strong>${item.nomeMaterial}</strong><br><small>Cód: ${item.codigo}</small></td>
+                    <td>${item.marca || 'Sem marca'}</td>
                     <td><span class="badge" style="background:#f4f6f7;color:#566573;">${item.ca || 'Sem CA'}</span></td>
                     <td><small>${item.lote || '---'}</small></td>
                     <td style="color: ${corTipo}; font-weight: bold;">${item.tipo}</td>
@@ -1201,7 +1374,6 @@
         document.getElementById('dashTotalItens').innerText = totalItens;
         document.getElementById('dashTotalCategorias').innerText = categorias.size;
 
-        // Análise de consumo nos últimos 30 dias
         let consumo = {}; let totalRetirado30d = 0;
         let limite30d = new Date().getTime() - (30 * 24 * 60 * 60 * 1000);
 
@@ -1216,7 +1388,6 @@
 
         document.getElementById('dashMediaDiaria').innerText = (totalRetirado30d / 30).toFixed(2) + " un. / dia";
 
-        // Consolidando estoque por nome para cálculo de autonomia
         let estoqueAgrupado = {};
         for(let key in estoqueLocal) {
             let n = estoqueLocal[key].nome || 'Desconhecido';
@@ -1263,7 +1434,6 @@
         let item = estoqueLocal[key];
         document.getElementById('editId').value = key;
         
-        // Trata os checkboxes de "Não Possui" na tela de Edição
         const ehSemCodigo = (item.codigo === 'Sem código' || !item.codigo);
         document.getElementById('checkEditSemCodigo').checked = ehSemCodigo;
         document.getElementById('editCodigo').disabled = ehSemCodigo;
@@ -1278,6 +1448,11 @@
         document.getElementById('checkEditSemCA').checked = ehSemCA;
         document.getElementById('editCA').disabled = ehSemCA;
         document.getElementById('editCA').value = ehSemCA ? '' : item.ca;
+
+        const ehSemMarca = (item.marca === 'Sem marca' || !item.marca);
+        document.getElementById('checkEditSemMarca').checked = ehSemMarca;
+        document.getElementById('editMarca').disabled = ehSemMarca;
+        document.getElementById('editMarca').value = ehSemMarca ? '' : item.marca;
 
         document.getElementById('editNome').value = item.nome || '';
         document.getElementById('editDescricao').value = item.descricao || '';
@@ -1308,6 +1483,7 @@
         let nCod = document.getElementById('checkEditSemCodigo').checked ? 'Sem código' : (document.getElementById('editCodigo').value.trim() || 'Sem código');
         let nLot = document.getElementById('checkEditSemLote').checked ? 'Sem lote' : (document.getElementById('editLote').value.trim() || 'Sem lote');
         let nCA = document.getElementById('checkEditSemCA').checked ? 'Sem CA' : (document.getElementById('editCA').value.trim() || 'Sem CA');
+        let nMarca = document.getElementById('checkEditSemMarca').checked ? 'Sem marca' : (document.getElementById('editMarca').value.trim() || 'Sem marca');
         
         let nNome = document.getElementById('editNome').value.trim();
         let nDesc = document.getElementById('editDescricao').value.trim();
@@ -1321,8 +1497,8 @@
         mostrarLoading(true, "Salvando...");
         try {
             await setDoc(doc(db, "estoque", key), {
-                codigo: nCod, lote: nLot, ca: nCA, nome: nNome,
-                descricao: nDesc, validade: nVal, qtd: nQtd,
+                codigo: nCod, lote: nLot, ca: nCA, marca: nMarca,
+                nome: nNome, descricao: nDesc, validade: nVal, qtd: nQtd,
                 ultimoColaborador: estoqueLocal[key].ultimoColaborador || '---'
             });
             alert('✏️ Item modificado com sucesso!');
@@ -1361,15 +1537,15 @@
 
         let html = '';
         if(vencidos.length === 0 && proximos.length === 0) {
-            html = `<div class="alert alert-info">✅ Nenhum item vencido ou próximo do vencimento!</div>`;
+            html = `<div class="alert alert-success">✅ Nenhum item vencido ou próximo do vencimento!</div>`;
         } else {
             if(vencidos.length > 0) {
                 html += `<div class="alert alert-danger"><div><strong>🚨 PRODUTOS VENCIDOS DETECTADOS!</strong><br>` + 
-                vencidos.map(v => `• ${v.nome} (Lote: ${v.lote} | CA: ${v.ca}) - ${v.qtd} un.`).join('<br>') + `</div></div>`;
+                vencidos.map(v => `• ${v.nome} (Lote: ${v.lote} | CA: ${v.ca} | Marca: ${v.marca || 'N/I'}) - ${v.qtd} un.`).join('<br>') + `</div></div>`;
             }
             if(proximos.length > 0) {
                 html += `<div class="alert alert-warning"><div><strong>⚠️ ITENS PRÓXIMOS AO VENCIMENTO (30 DIAS):</strong><br>` + 
-                proximos.map(v => `• ${v.nome} (Lote: ${v.lote} | CA: ${v.ca}) - Autonomia: ${v.dias}`).join('<br>') + `</div></div>`;
+                proximos.map(v => `• ${v.nome} (Lote: ${v.lote} | CA: ${v.ca} | Marca: ${v.marca || 'N/I'}) - Autonomia: ${v.dias}`).join('<br>') + `</div></div>`;
             }
         }
         area.innerHTML = html; area.style.display = 'block';
@@ -1432,6 +1608,9 @@
         if(html5QrcodeSaida && html5QrcodeSaida.isScanning) html5QrcodeSaida.stop().catch(()=>{});
         if(html5QrcodeEntrada && html5QrcodeEntrada.isScanning) html5QrcodeEntrada.stop().catch(()=>{});
     }
+
+    // Inicializa o alerta flutuante
+    console.log('Sistema de Controle de EPI e Materiais - DPGERJ iniciado!');
 </script>
 </body>
 </html>
